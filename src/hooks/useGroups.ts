@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,7 +52,7 @@ export const useGroups = () => {
       console.log('User memberships:', membershipData);
 
       // Get details for groups where user is a member (but didn't create)
-      let memberGroups: Group[] = [];
+      const memberGroups: Group[] = [];
       if (membershipData && membershipData.length > 0) {
         const memberGroupIds = membershipData.map(m => m.group_id);
         const nonCreatedGroupIds = memberGroupIds.filter(id => 
@@ -211,11 +210,57 @@ export const useGroups = () => {
     }
   };
 
+  const getGroupMembers = async (groupId: string) => {
+    if (!user) return [];
+
+    try {
+      // First get member IDs
+      const { data: members, error } = await supabase
+        .from('group_members')
+        .select('user_id, role')
+        .eq('group_id', groupId);
+
+      if (error) {
+        console.error('Error fetching group members:', error);
+        return [];
+      }
+
+      if (!members || members.length === 0) return [];
+
+      // Then get profile data for each member
+      const userIds = members.map(m => m.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching member profiles:', profilesError);
+        return [];
+      }
+
+      // Combine member data with profile data
+      return members.map(member => {
+        const profile = profiles?.find(p => p.id === member.user_id);
+        return {
+          id: member.user_id,
+          full_name: profile?.full_name || 'Okänd användare',
+          email: profile?.email || '',
+          role: member.role
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      return [];
+    }
+  };
+
   return {
     groups,
     loading,
     createGroup,
     inviteUserToGroup,
+    getGroupMembers,
     refetch: fetchGroups,
   };
 };

@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +16,7 @@ const Todos = () => {
   const { user } = useAuth();
   const { groups } = useGroups();
   const selectedGroupId = groups.length > 0 ? groups[0].id : null;
-  const { events, createEvent } = useEvents(selectedGroupId);
+  const { events, createEvent, refetch } = useEvents(selectedGroupId);
   const [isAdding, setIsAdding] = useState(false);
   const [newTodo, setNewTodo] = useState({
     title: '',
@@ -49,14 +49,17 @@ const Todos = () => {
         time: '12:00'
       });
       setIsAdding(false);
+      setTimeout(() => {
+        refetch();
+      }, 100);
     }
   };
 
   if (!selectedGroupId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
         <Header />
-        <div className="container mx-auto px-4 py-8">
+        <div className="flex-1 container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <Card>
               <CardContent className="text-center py-12">
@@ -65,15 +68,16 @@ const Todos = () => {
             </Card>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Mina To-dos</h1>
@@ -84,7 +88,7 @@ const Todos = () => {
           </div>
 
           {isAdding && (
-            <Card className="mb-6">
+            <Card className="mb-6 animate-in slide-in-from-top-2 duration-300">
               <CardHeader>
                 <CardTitle>Ny uppgift</CardTitle>
               </CardHeader>
@@ -135,8 +139,12 @@ const Todos = () => {
                 </CardContent>
               </Card>
             ) : (
-              todos.map(todo => (
-                <Card key={todo.id}>
+              todos.map((todo, index) => (
+                <Card 
+                  key={todo.id} 
+                  className="animate-in slide-in-from-bottom-2 duration-300"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -162,6 +170,8 @@ const Todos = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

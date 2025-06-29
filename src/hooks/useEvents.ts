@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -70,6 +69,30 @@ export const useEvents = (groupId: string | null) => {
 
   useEffect(() => {
     fetchEvents();
+
+    // Set up real-time subscription for live updates
+    if (groupId) {
+      const subscription = supabase
+        .channel(`events-${groupId}`)
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'events',
+            filter: `group_id=eq.${groupId}`
+          }, 
+          (payload) => {
+            console.log('Real-time event update:', payload);
+            // Refresh events when changes occur
+            fetchEvents();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, [user, groupId]);
 
   const createEvent = async (eventData: Omit<Event, 'id' | 'created_by' | 'group_id' | 'assignee'>) => {
@@ -88,7 +111,7 @@ export const useEvents = (groupId: string | null) => {
 
       if (error) throw error;
 
-      await fetchEvents();
+      // No need to manually fetchEvents() here as real-time subscription will handle it
       return { data, error: null };
     } catch (error) {
       console.error('Error creating event:', error);
