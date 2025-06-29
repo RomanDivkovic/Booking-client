@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,15 +7,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import { useGroups } from '@/hooks/useGroups';
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (event: any) => void;
+  onSubmit: (event: {
+    title: string;
+    date: Date;
+    time: string;
+    type: 'booking' | 'task';
+    assignee: string;
+    description: string;
+    category: string;
+  }) => void;
   selectedDate: Date | null;
+  groupId: string | null;
 }
 
-export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate }: EventModalProps) => {
+export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }: EventModalProps) => {
   const [formData, setFormData] = useState({
     title: '',
     date: selectedDate || new Date(),
@@ -26,12 +35,24 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate }: EventMod
     description: '',
     category: ''
   });
+  const [groupMembers, setGroupMembers] = useState<Array<{id: string, full_name: string, email: string}>>([]);
+  const { getGroupMembers } = useGroups();
 
   useEffect(() => {
     if (selectedDate) {
       setFormData(prev => ({ ...prev, date: selectedDate }));
     }
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (isOpen && groupId) {
+      const fetchMembers = async () => {
+        const members = await getGroupMembers(groupId);
+        setGroupMembers(members);
+      };
+      fetchMembers();
+    }
+  }, [isOpen, groupId, getGroupMembers]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +148,11 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate }: EventMod
                   <SelectValue placeholder="Välj person" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Nuvarande användare">👤 Jag</SelectItem>
+                  {groupMembers.map(member => (
+                    <SelectItem key={member.id} value={member.id}>
+                      👤 {member.full_name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Plus, Users, Calendar, UserPlus } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
 import { useToast } from '@/components/ui/use-toast';
 import { GroupInviteModal } from './GroupInviteModal';
+import { Footer } from './Footer';
 
 interface GroupSelectionProps {
   onGroupSelect: (groupId: string) => void;
@@ -83,130 +83,137 @@ export const GroupSelection = ({ onGroupSelect }: GroupSelectionProps) => {
 
   if (groupsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <Calendar className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Laddar grupper...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Calendar className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
+            <p className="text-gray-600">Laddar grupper...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-4">
-      <div className="container mx-auto max-w-4xl pt-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
+      <div className="flex-1 p-4">
+        <div className="container mx-auto max-w-4xl pt-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Välj eller skapa en grupp</h1>
+            <p className="text-gray-600">Välj en befintlig grupp eller skapa en ny för att komma igång</p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Välj eller skapa en grupp</h1>
-          <p className="text-gray-600">Välj en befintlig grupp eller skapa en ny för att komma igång</p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {groups.map((group) => (
-            <Card key={group.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  <span>{group.name}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {group.description && (
-                  <p className="text-gray-600 mb-4">{group.description}</p>
-                )}
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-gray-500">
-                    {group.member_count} medlem{group.member_count !== 1 ? 'mar' : ''}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => onGroupSelect(group.id)}
-                    className="flex-1"
-                  >
-                    Välj grupp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openInviteModal({ id: group.id, name: group.name })}
-                    title="Bjud in medlem"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow border-dashed border-2 border-blue-300">
-                <CardContent className="flex flex-col items-center justify-center h-full p-8">
-                  <Plus className="w-12 h-12 text-blue-600 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Skapa ny grupp</h3>
-                  <p className="text-gray-600 text-center">Skapa en ny grupp och bjud in familj eller vänner</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {groups.map((group) => (
+              <Card key={group.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <span>{group.name}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {group.description && (
+                    <p className="text-gray-600 mb-4">{group.description}</p>
+                  )}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-500">
+                      {group.member_count} medlem{group.member_count !== 1 ? 'mar' : ''}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => onGroupSelect(group.id)}
+                      className="flex-1"
+                    >
+                      Välj grupp
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openInviteModal({ id: group.id, name: group.name })}
+                      title="Bjud in medlem"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-            </DialogTrigger>
+            ))}
 
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Skapa ny grupp</DialogTitle>
-              </DialogHeader>
+            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+              <DialogTrigger asChild>
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow border-dashed border-2 border-blue-300">
+                  <CardContent className="flex flex-col items-center justify-center h-full p-8">
+                    <Plus className="w-12 h-12 text-blue-600 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Skapa ny grupp</h3>
+                    <p className="text-gray-600 text-center">Skapa en ny grupp och bjud in familj eller vänner</p>
+                  </CardContent>
+                </Card>
+              </DialogTrigger>
 
-              <form onSubmit={handleCreateGroup} className="space-y-4">
-                <div>
-                  <Label htmlFor="groupName">Gruppnamn *</Label>
-                  <Input
-                    id="groupName"
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    placeholder="T.ex. Familjen Andersson"
-                    required
-                    disabled={loading}
-                  />
-                </div>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Skapa ny grupp</DialogTitle>
+                </DialogHeader>
 
-                <div>
-                  <Label htmlFor="groupDescription">Beskrivning</Label>
-                  <Textarea
-                    id="groupDescription"
-                    value={groupDescription}
-                    onChange={(e) => setGroupDescription(e.target.value)}
-                    placeholder="Beskriv er grupp (valfritt)"
-                    rows={3}
-                    disabled={loading}
-                  />
-                </div>
+                <form onSubmit={handleCreateGroup} className="space-y-4">
+                  <div>
+                    <Label htmlFor="groupName">Gruppnamn *</Label>
+                    <Input
+                      id="groupName"
+                      value={groupName}
+                      onChange={(e) => setGroupName(e.target.value)}
+                      placeholder="T.ex. Familjen Andersson"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
 
-                <div className="flex justify-end space-x-3">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsCreateModalOpen(false)}
-                    disabled={loading}
-                  >
-                    Avbryt
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? 'Skapar...' : 'Skapa grupp'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  <div>
+                    <Label htmlFor="groupDescription">Beskrivning</Label>
+                    <Textarea
+                      id="groupDescription"
+                      value={groupDescription}
+                      onChange={(e) => setGroupDescription(e.target.value)}
+                      placeholder="Beskriv er grupp (valfritt)"
+                      rows={3}
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-3">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsCreateModalOpen(false)}
+                      disabled={loading}
+                    >
+                      Avbryt
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? 'Skapar...' : 'Skapa grupp'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-
-        <GroupInviteModal
-          isOpen={isInviteModalOpen}
-          onClose={() => setIsInviteModalOpen(false)}
-          onInvite={handleInviteUser}
-          groupName={selectedGroup?.name || ''}
-        />
       </div>
+
+      <GroupInviteModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onInvite={handleInviteUser}
+        groupName={selectedGroup?.name || ''}
+      />
+
+      <Footer />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,9 +10,10 @@ interface CalendarViewProps {
   view: 'month' | 'week' | 'day';
   onViewChange: (view: 'month' | 'week' | 'day') => void;
   onDateSelect: (date: Date) => void;
+  onEventClick: (event: Event) => void;
 }
 
-export const CalendarView = ({ events, view, onViewChange, onDateSelect }: CalendarViewProps) => {
+export const CalendarView = ({ events, view, onViewChange, onDateSelect, onEventClick }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const monthStart = startOfMonth(currentDate);
@@ -114,8 +114,12 @@ export const CalendarView = ({ events, view, onViewChange, onDateSelect }: Calen
                   {dayEvents.slice(0, 2).map(event => (
                     <div
                       key={event.id}
-                      className={`text-xs p-1 rounded border ${getEventColor(event.event_type)} truncate`}
-                      title={event.title}
+                      className={`text-xs p-1 rounded border ${getEventColor(event.event_type)} truncate cursor-pointer hover:opacity-80 transition-all duration-200 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-1 duration-300`}
+                      title={`${event.event_time} ${event.title}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClick(event);
+                      }}
                     >
                       {event.event_time} {event.title}
                     </div>
