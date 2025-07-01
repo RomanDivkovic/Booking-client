@@ -1,13 +1,13 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Calendar, Shield, Users } from 'lucide-react';
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, Shield, User, Calendar } from "lucide-react";
 
 export default function TOS() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
@@ -16,167 +16,232 @@ export default function TOS() {
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FileText className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Användarvillkor</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Terms of Service
+              </h1>
               <p className="text-xl text-gray-600">
-                Senast uppdaterad: {new Date().toLocaleDateString('sv-SE')}
+                Please read these terms carefully before using FamiljKal
               </p>
             </div>
 
             {/* Terms Content */}
             <div className="space-y-8">
+              {/* Acceptance */}
               <Card>
                 <CardHeader>
-                  <CardTitle>1. Tjänstebeskrivning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    FamiljKal är en webbaserad kalendertjänst som låter användare skapa grupper, 
-                    dela kalendrar och koordinera händelser och uppgifter inom hushåll och familjer.
-                  </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    Genom att använda FamiljKal godkänner du dessa användarvillkor och vår 
-                    integritetspolicy.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>2. Användarregistrering</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Du måste vara minst 13 år gammal för att skapa ett konto</li>
-                    <li>• Du ansvarar för att all information du anger är korrekt och aktuell</li>
-                    <li>• Du ansvarar för att hålla ditt lösenord säkert och konfidentiellt</li>
-                    <li>• Du får inte dela ditt konto med andra personer</li>
-                    <li>• Du måste meddela oss omedelbart vid misstänkt säkerhetsöverträdelse</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>3. Acceptabel användning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    Du åtar dig att använda FamiljKal endast för lagliga och etiska ändamål. 
-                    Du får inte:
-                  </p>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Använda tjänsten för olaglig aktivitet</li>
-                    <li>• Dela innehåll som är kränkande, hotfullt eller olämpligt</li>
-                    <li>• Försöka hacka eller störa tjänsten</li>
-                    <li>• Använda automatiserade system för att komma åt tjänsten</li>
-                    <li>• Dela personuppgifter om andra utan deras samtycke</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>4. Grupphantering och delning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Du ansvarar för innehållet i grupper du skapar</li>
-                    <li>• Du får bara bjuda in personer som du har rätt att dela information med</li>
-                    <li>• Alla gruppmedlemmar måste ha ett giltigt konto</li>
-                    <li>• Du kan när som helst lämna en grupp</li>
-                    <li>• Gruppskapare kan ta bort medlemmar från gruppen</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>5. Dataskydd och integritet</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    Vi tar din integritet på allvar. Se vår integritetspolicy för detaljer om 
-                    hur vi hanterar din data.
-                  </p>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Vi samlar endast in data som behövs för tjänsten</li>
-                    <li>• Din data delas endast med medlemmar i dina grupper</li>
-                    <li>• Vi använder modern kryptering för att skydda din data</li>
-                    <li>• Du kan när som helst begära att få din data raderad</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>6. Tjänstens tillgänglighet</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Vi strävar efter hög tillgänglighet men kan inte garantera 100% uptime</li>
-                    <li>• Vi kan behöva stänga av tjänsten för underhåll</li>
-                    <li>• Vi ansvarar inte för förluster på grund av driftstörningar</li>
-                    <li>• Vi meddelar i förväg vid planerade underhållsstopp</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>7. Ansvarsfriskrivning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    FamiljKal tillhandahålls "i befintligt skick" utan garantier. Vi ansvarar inte för:
-                  </p>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Indirekta eller följdskador</li>
-                    <li>• Förlust av data eller innehåll</li>
-                    <li>• Felaktig information som användare lägger till</li>
-                    <li>• Konflikter mellan gruppmedlemmar</li>
-                    <li>• Skador från tredjepartstjänster</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>8. Ändringar av villkoren</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    <span>1. Acceptance of Terms</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 leading-relaxed">
-                    Vi förbehåller oss rätten att ändra dessa villkor. Vid väsentliga ändringar 
-                    meddelar vi dig via e-post eller genom ett meddelande i tjänsten. Fortsatt 
-                    användning efter ändringar innebär att du accepterar de nya villkoren.
+                    By accessing and using FamiljKal, you accept and agree to be
+                    bound by the terms and provision of this agreement. If you
+                    do not agree to abide by the above, please do not use this
+                    service.
                   </p>
                 </CardContent>
               </Card>
 
+              {/* Service Description */}
               <Card>
                 <CardHeader>
-                  <CardTitle>9. Uppsägning</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                    <span>2. Service Description</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="text-gray-700 leading-relaxed space-y-2">
-                    <li>• Du kan när som helst avsluta ditt konto</li>
-                    <li>• Vi kan avsluta ditt konto vid överträdelse av villkoren</li>
-                    <li>• Vid avslut raderas din data inom 30 dagar</li>
-                    <li>• Grupper du skapat påverkas av ditt avslut</li>
+                  <p className="text-gray-700 leading-relaxed mb-4">
+                    FamiljKal is a collaborative calendar application that
+                    allows families and households to share schedules, manage
+                    events, and coordinate activities. The service includes:
+                  </p>
+                  <ul className="list-disc list-inside text-gray-700 space-y-2">
+                    <li>Calendar management and event scheduling</li>
+                    <li>Group creation and member management</li>
+                    <li>Real-time updates and synchronization</li>
+                    <li>Task assignment and tracking</li>
+                    <li>Mobile and web access</li>
                   </ul>
                 </CardContent>
               </Card>
 
+              {/* User Accounts */}
               <Card>
                 <CardHeader>
-                  <CardTitle>10. Kontakt</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    <span>3. User Accounts</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      To use FamiljKal, you must create an account. You are
+                      responsible for:
+                    </p>
+                    <ul className="list-disc list-inside text-gray-700 space-y-2">
+                      <li>
+                        Maintaining the confidentiality of your account
+                        credentials
+                      </li>
+                      <li>All activities that occur under your account</li>
+                      <li>Providing accurate and complete information</li>
+                      <li>Notifying us immediately of any unauthorized use</li>
+                    </ul>
+                    <p className="text-gray-700 leading-relaxed">
+                      You must be at least 13 years old to create an account. If
+                      you are under 18, you must have parental consent to use
+                      the service.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Privacy and Data */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                    <span>4. Privacy and Data Protection</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      We are committed to protecting your privacy. Our data
+                      practices are governed by our Privacy Policy, which is
+                      incorporated into these terms.
+                    </p>
+                    <p className="text-gray-700 leading-relaxed">
+                      You retain ownership of your data. We will not sell, rent,
+                      or share your personal information with third parties
+                      except as described in our Privacy Policy.
+                    </p>
+                    <p className="text-gray-700 leading-relaxed">
+                      You can delete your account and all associated data at any
+                      time through your profile settings.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Acceptable Use */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                    <span>5. Acceptable Use</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      You agree to use FamiljKal only for lawful purposes and in
+                      accordance with these terms. You agree not to:
+                    </p>
+                    <ul className="list-disc list-inside text-gray-700 space-y-2">
+                      <li>
+                        Use the service for any illegal or unauthorized purpose
+                      </li>
+                      <li>Violate any applicable laws or regulations</li>
+                      <li>Infringe on the rights of others</li>
+                      <li>
+                        Attempt to gain unauthorized access to the service
+                      </li>
+                      <li>Interfere with or disrupt the service</li>
+                      <li>Share inappropriate or offensive content</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Intellectual Property */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    <span>6. Intellectual Property</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      FamiljKal and its original content, features, and
+                      functionality are owned by us and are protected by
+                      international copyright, trademark, and other intellectual
+                      property laws.
+                    </p>
+                    <p className="text-gray-700 leading-relaxed">
+                      You retain ownership of any content you create or upload
+                      to the service. By using FamiljKal, you grant us a limited
+                      license to store and display your content as necessary to
+                      provide the service.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Limitation of Liability */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                    <span>7. Limitation of Liability</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 leading-relaxed">
-                    Vid frågor om dessa villkor, kontakta oss på{' '}
-                    <a href="mailto:legal@familjkal.se" className="text-blue-600 hover:underline">
-                      legal@familjkal.se
-                    </a>
+                    In no event shall FamiljKal be liable for any indirect,
+                    incidental, special, consequential, or punitive damages,
+                    including without limitation, loss of profits, data, use,
+                    goodwill, or other intangible losses, resulting from your
+                    use of the service.
                   </p>
+                </CardContent>
+              </Card>
+
+              {/* Changes to Terms */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    <span>8. Changes to Terms</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed">
+                    We reserve the right to modify these terms at any time. We
+                    will notify users of any material changes via email or
+                    through the service. Your continued use of FamiljKal after
+                    such modifications constitutes acceptance of the updated
+                    terms.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Contact Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    <span>9. Contact Information</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed">
+                    If you have any questions about these Terms of Service,
+                    please contact us at:
+                  </p>
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-gray-700">
+                      <strong>Email:</strong> legal@familjkal.se
+                      <br />
+                      <strong>Last updated:</strong> December 2024
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -187,4 +252,4 @@ export default function TOS() {
       <Footer />
     </div>
   );
-} 
+}

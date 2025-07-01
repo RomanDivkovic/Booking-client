@@ -1,26 +1,29 @@
-
-import { Users, Calendar, CheckSquare } from 'lucide-react';
-import { Event } from '@/hooks/useEvents';
+import { Users, Calendar, CheckSquare } from "lucide-react";
+import { Event } from "@/hooks/useEvents";
 
 interface HouseholdStatsProps {
   events: Event[];
 }
 
 export const HouseholdStats = ({ events }: HouseholdStatsProps) => {
-  const thisWeekEvents = events.filter(event => {
+  const thisWeekEvents = events.filter((event) => {
     const eventDate = new Date(event.event_date);
     const now = new Date();
     const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     return eventDate >= now && eventDate <= weekFromNow;
   });
 
-  const pendingTasks = events.filter(event => event.event_type === 'task').length;
-  const upcomingBookings = events.filter(event => event.event_type === 'booking').length;
+  const pendingTasks = events.filter(
+    (event) => event.event_type === "task"
+  ).length;
+  const upcomingBookings = events.filter(
+    (event) => event.event_type === "booking"
+  ).length;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Översikt</h3>
-      
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Overview</h3>
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -28,11 +31,15 @@ export const HouseholdStats = ({ events }: HouseholdStatsProps) => {
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Kommande bokningar</p>
-              <p className="text-xs text-gray-500">Denna vecka</p>
+              <p className="text-sm font-medium text-gray-900">
+                Upcoming Bookings
+              </p>
+              <p className="text-xs text-gray-500">This week</p>
             </div>
           </div>
-          <span className="text-xl font-bold text-blue-600">{upcomingBookings}</span>
+          <span className="text-xl font-bold text-blue-600">
+            {upcomingBookings}
+          </span>
         </div>
 
         <div className="flex items-center justify-between">
@@ -41,11 +48,13 @@ export const HouseholdStats = ({ events }: HouseholdStatsProps) => {
               <CheckSquare className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Pågående uppgifter</p>
-              <p className="text-xs text-gray-500">Totalt</p>
+              <p className="text-sm font-medium text-gray-900">Pending Tasks</p>
+              <p className="text-xs text-gray-500">Total</p>
             </div>
           </div>
-          <span className="text-xl font-bold text-green-600">{pendingTasks}</span>
+          <span className="text-xl font-bold text-green-600">
+            {pendingTasks}
+          </span>
         </div>
 
         <div className="flex items-center justify-between">
@@ -54,11 +63,13 @@ export const HouseholdStats = ({ events }: HouseholdStatsProps) => {
               <Users className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Denna vecka</p>
-              <p className="text-xs text-gray-500">Händelser</p>
+              <p className="text-sm font-medium text-gray-900">This Week</p>
+              <p className="text-xs text-gray-500">Events</p>
             </div>
           </div>
-          <span className="text-xl font-bold text-purple-600">{thisWeekEvents.length}</span>
+          <span className="text-xl font-bold text-purple-600">
+            {thisWeekEvents.length}
+          </span>
         </div>
       </div>
     </div>
