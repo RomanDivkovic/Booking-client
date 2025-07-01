@@ -1,61 +1,122 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CalendarView } from '@/components/CalendarView';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { EventModal } from '@/components/EventModal';
-import { EventDetailModal } from '@/components/EventDetailModal';
-import { Sidebar } from '@/components/Sidebar';
-import { HouseholdStats } from '@/components/HouseholdStats';
-import { GroupSelection } from '@/components/GroupSelection';
-import { useAuth } from '@/contexts/AuthContext';
-import { useEvents } from '@/hooks/useEvents';
-import { Event } from '@/hooks/useEvents';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { CalendarView } from "@/components/CalendarView";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { EventModal } from "@/components/EventModal";
+import { EventDetailModal } from "@/components/EventDetailModal";
+import { Sidebar } from "@/components/Sidebar";
+import { HouseholdStats } from "@/components/HouseholdStats";
+import { GroupSelection } from "@/components/GroupSelection";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEvents } from "@/hooks/useEvents";
+import { useGroups } from "@/hooks/useGroups";
+import { LoadingSpinner } from "@/components/SkeletonLoaders";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
+  const { groups, loading: groupsLoading } = useGroups();
   const navigate = useNavigate();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [view, setView] = useState<'month' | 'week' | 'day'>('month');
 
-  const { events, loading: eventsLoading, createEvent, refetch } = useEvents(selectedGroupId);
+  const {
+    events,
+    loading: eventsLoading,
+    createEvent,
+    refetch
+  } = useEvents(selectedGroupId);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    // Get selected group from localStorage or use first available group
+    const storedGroupId = localStorage.getItem("selectedGroupId");
+    if (storedGroupId && groups.some((g) => g.id === storedGroupId)) {
+      setSelectedGroupId(storedGroupId);
+    } else if (groups.length > 0) {
+      setSelectedGroupId(groups[0].id);
+      localStorage.setItem("selectedGroupId", groups[0].id);
+    }
+  }, [groups]);
+
+  const handleGroupSelect = (groupId: string) => {
+    setSelectedGroupId(groupId);
+    localStorage.setItem("selectedGroupId", groupId);
+  };
 
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <div className="w-8 h-8 bg-white rounded"></div>
-          </div>
-          <p className="text-gray-600">Laddar...</p>
+          <LoadingSpinner size="large" />
+          <p className="text-gray-600 mt-4">Loading...</p>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="large" />
+            <p className="text-gray-600 mt-4">Loading...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (groupsLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="large" />
+            <p className="text-gray-600 mt-4">Loading your groups...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (groups.length === 0) {
+    return <GroupSelection onGroupSelect={handleGroupSelect} />;
   }
 
   if (!selectedGroupId) {
-    return <GroupSelection onGroupSelect={setSelectedGroupId} />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="large" />
+            <p className="text-gray-600 mt-4">Selecting group...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   const handleAddEvent = async (eventData: {
     title: string;
     date: Date;
     time: string;
-    type: 'booking' | 'task';
+    type: "booking" | "task";
     assignee: string;
     description: string;
     category: string;
@@ -67,7 +128,7 @@ const Index = () => {
       event_time: eventData.time,
       event_type: eventData.type,
       category: eventData.category,
-      assignee_id: eventData.assignee,
+      assignee_id: eventData.assignee
     });
 
     if (!error) {
@@ -79,48 +140,14 @@ const Index = () => {
     }
   };
 
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    setIsModalOpen(true);
-  };
-
-  const handleEventClick = (event: Event) => {
-    setSelectedEvent(event);
-    setIsDetailModalOpen(true);
-  };
-
   const handleEventUpdate = () => {
     refetch();
   };
 
-  // Convert events to the format expected by existing components
-  const formattedEvents = events.map(event => ({
-    id: event.id,
-    title: event.title,
-    date: new Date(event.event_date),
-    time: event.event_time,
-    type: event.event_type as 'booking' | 'task',
-    assignee: event.assignee?.full_name || 'Okänd',
-    description: event.description || '',
-    category: event.category,
-  }));
-
-  if (eventsLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <Header />
-        <div className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
-          <p className="text-gray-600">Laddar händelser...</p>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
-      
+
       <div className="flex-1 container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 space-y-6">
@@ -129,31 +156,44 @@ const Index = () => {
           </div>
 
           <div className="lg:col-span-3">
-            <CalendarView 
-              events={events}
-              view={view}
-              onViewChange={setView}
-              onDateSelect={handleDateSelect}
-              onEventClick={handleEventClick}
-            />
+            {eventsLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <LoadingSpinner size="large" />
+                  <p className="text-gray-600 mt-4">Loading events...</p>
+                </div>
+              </div>
+            ) : (
+              <CalendarView
+                groupId={selectedGroupId}
+                onEventClick={(event) => {
+                  setSelectedEvent(event);
+                  setIsDetailModalOpen(true);
+                }}
+                onDateClick={(date) => {
+                  setSelectedDate(date);
+                  setIsModalOpen(true);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
 
       <EventModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedDate(null);
+        }}
         onSubmit={handleAddEvent}
-        selectedDate={selectedDate}
         groupId={selectedGroupId}
+        selectedDate={selectedDate}
       />
 
       <EventDetailModal
         isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedEvent(null);
-        }}
+        onClose={() => setIsDetailModalOpen(false)}
         event={selectedEvent}
         onEventUpdate={handleEventUpdate}
       />

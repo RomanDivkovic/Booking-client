@@ -1,140 +1,306 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Event } from '@/hooks/useEvents';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isToday } from 'date-fns';
-import { sv } from 'date-fns/locale';
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useEvents } from "@/hooks/useEvents";
+import { EventModal } from "./EventModal";
+import { EventDetailModal } from "./EventDetailModal";
+import { Event } from "@/hooks/useEvents";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  startOfWeek,
+  endOfWeek,
+  addWeeks,
+  subWeeks
+} from "date-fns";
+import { CalendarDaySkeleton } from "./SkeletonLoaders";
 
 interface CalendarViewProps {
-  events: Event[];
-  view: 'month' | 'week' | 'day';
-  onViewChange: (view: 'month' | 'week' | 'day') => void;
-  onDateSelect: (date: Date) => void;
-  onEventClick: (event: Event) => void;
+  groupId: string;
+
+  onEventClick?: (event: Event) => void;
+
+  onDateClick?: (date: Date) => void;
 }
 
-export const CalendarView = ({ events, view, onViewChange, onDateSelect, onEventClick }: CalendarViewProps) => {
+export const CalendarView = ({
+  groupId,
+  onEventClick,
+  onDateClick
+}: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);
+  const [view, setView] = useState<"month" | "week">("month");
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const weekStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const { events, loading } = useEvents(groupId);
 
-  const getEventsForDate = (date: Date) => {
-    return events.filter(event => isSameDay(new Date(event.event_date), date));
+  // Get days based on current view
+  const getDaysForView = () => {
+    if (view === "month") {
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+      const daysInMonth = eachDayOfInterval({
+        start: monthStart,
+        end: monthEnd
+      });
+
+      // Add padding days to fill the calendar grid
+      const startPadding = monthStart.getDay();
+      const endPadding = 6 - monthEnd.getDay();
+      const paddingDays = [];
+
+      // Add days from previous month
+      for (let i = startPadding - 1; i >= 0; i--) {
+        paddingDays.push(
+          subMonths(currentDate, 1).setDate(monthStart.getDate() - i - 1)
+        );
+      }
+
+      // Add days from next month
+      for (let i = 1; i <= endPadding; i++) {
+        paddingDays.push(addMonths(currentDate, 1).setDate(i));
+      }
+
+      return [...paddingDays, ...daysInMonth.map((day) => day.getTime())];
+    } else {
+      // Week view
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+      const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
+      return daysInWeek.map((day) => day.getTime());
+    }
   };
 
-  const nextMonth = () => {
-    setCurrentDate(addMonths(currentDate, 1));
+  const allDays = getDaysForView();
+
+  const getEventsForDay = (date: Date) => {
+    return events.filter((event) =>
+      isSameDay(new Date(event.event_date), date)
+    );
   };
 
-  const prevMonth = () => {
-    setCurrentDate(subMonths(currentDate, 1));
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date);
+    setIsEventModalOpen(true);
+    if (onDateClick) onDateClick(date);
   };
 
-  const getEventColor = (type: 'booking' | 'task') => {
-    return type === 'booking' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200';
+  const handleEventClick = (event: Event) => {
+    setSelectedEvent(event);
+    setIsEventDetailModalOpen(true);
+    if (onEventClick) onEventClick(event);
+  };
+
+  const handleAddEvent = () => {
+    // The event will be added through the modal and real-time updates will handle the refresh
+    setIsEventModalOpen(false);
+  };
+
+  const handleEventUpdate = () => {
+    // The event will be updated through the modal and real-time updates will handle the refresh
+    setIsEventDetailModalOpen(false);
+  };
+
+  const goToPrevious = () => {
+    if (view === "month") {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else {
+      setCurrentDate(subWeeks(currentDate, 1));
+    }
+  };
+
+  const goToNext = () => {
+    if (view === "month") {
+      setCurrentDate(addMonths(currentDate, 1));
+    } else {
+      setCurrentDate(addWeeks(currentDate, 1));
+    }
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const getViewTitle = () => {
+    if (view === "month") {
+      return format(currentDate, "MMMM yyyy");
+    } else {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="space-y-6">
       {/* Calendar Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <Button onClick={prevMonth} variant="ghost" size="sm">
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {format(currentDate, 'MMMM yyyy', { locale: sv })}
-            </h2>
-            <Button onClick={nextMonth} variant="ghost" size="sm">
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Button
-              variant={view === 'month' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => onViewChange('month')}
-            >
-              Månad
-            </Button>
-            <Button
-              variant={view === 'week' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => onViewChange('week')}
-            >
-              Vecka
-            </Button>
-            <Button
-              variant={view === 'day' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => onViewChange('day')}
-            >
-              Dag
-            </Button>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={goToPrevious}
+            className="sm:w-auto w-full"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <h2 className="text-2xl font-bold text-gray-900">{getViewTitle()}</h2>
+          <Button
+            variant="outline"
+            onClick={goToNext}
+            className="sm:w-auto w-full"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
-
-        {/* Weekday Headers */}
-        <div className="grid grid-cols-7 gap-1">
-          {['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'].map(day => (
-            <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
-              {day}
-            </div>
-          ))}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 w-full sm:w-auto">
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+            <Button
+              variant={view === "month" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setView("month")}
+              className="text-xs w-full sm:w-auto"
+            >
+              Month
+            </Button>
+            <Button
+              variant={view === "week" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setView("week")}
+              className="text-xs w-full sm:w-auto"
+            >
+              Week
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            onClick={goToToday}
+            className="w-full sm:w-auto"
+          >
+            Today
+          </Button>
+          <Button
+            onClick={() => setIsEventModalOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Event
+          </Button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="p-4">
-        <div className="grid grid-cols-7 gap-1">
-          {days.map(day => {
-            const dayEvents = getEventsForDate(day);
-            const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-            const isDayToday = isToday(day);
-
-            return (
+      <Card>
+        <CardContent className="p-6">
+          {/* Day Headers */}
+          <div
+            className={`grid gap-1 mb-2 ${view === "month" ? "grid-cols-7" : "grid-cols-7"}`}
+          >
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
               <div
-                key={day.toISOString()}
-                className={`min-h-[120px] p-2 border border-gray-100 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                  !isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
-                } ${isDayToday ? 'bg-blue-50 border-blue-200' : ''}`}
-                onClick={() => onDateSelect(day)}
+                key={day}
+                className="text-center text-sm font-medium text-gray-500 py-2"
               >
-                <div className={`text-sm font-medium mb-1 ${isDayToday ? 'text-blue-600' : ''}`}>
-                  {format(day, 'd')}
-                </div>
-                
-                <div className="space-y-1">
-                  {dayEvents.slice(0, 2).map(event => (
-                    <div
-                      key={event.id}
-                      className={`text-xs p-1 rounded border ${getEventColor(event.event_type)} truncate cursor-pointer hover:opacity-80 transition-all duration-200 transform hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-1 duration-300`}
-                      title={`${event.event_time} ${event.title}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEventClick(event);
-                      }}
-                    >
-                      {event.event_time} {event.title}
-                    </div>
-                  ))}
-                  {dayEvents.length > 2 && (
-                    <div className="text-xs text-gray-500">
-                      +{dayEvents.length - 2} till
-                    </div>
-                  )}
-                </div>
+                {day}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+
+          {/* Calendar Days */}
+          <div
+            className={`grid gap-1 ${view === "month" ? "grid-cols-7" : "grid-cols-7"}`}
+          >
+            {loading
+              ? // Show skeleton loaders while loading
+                Array.from({ length: view === "month" ? 42 : 7 }).map(
+                  (_, i) => <CalendarDaySkeleton key={i} />
+                )
+              : allDays.map((dayTimestamp, index) => {
+                  const day = new Date(dayTimestamp);
+                  const dayEvents = getEventsForDay(day);
+                  const isCurrentMonth =
+                    view === "month" ? isSameMonth(day, currentDate) : true;
+                  const isToday = isSameDay(day, new Date());
+
+                  return (
+                    <div
+                      key={index}
+                      className={`
+                      min-h-[120px] p-2 border rounded-lg cursor-pointer transition-colors
+                      ${isCurrentMonth ? "bg-white" : "bg-gray-50"}
+                      ${isToday ? "border-blue-500 bg-blue-50" : "border-gray-200"}
+                      hover:bg-gray-50 hover:border-gray-300
+                    `}
+                      onClick={() => handleDayClick(day)}
+                    >
+                      <div
+                        className={`
+                      text-sm font-medium mb-1
+                      ${isCurrentMonth ? "text-gray-900" : "text-gray-400"}
+                      ${isToday ? "text-blue-600" : ""}
+                    `}
+                      >
+                        {format(day, "d")}
+                      </div>
+
+                      <div className="space-y-1">
+                        {dayEvents.slice(0, 3).map((event) => (
+                          <div
+                            key={event.id}
+                            className={`
+                            text-xs p-1 rounded truncate cursor-pointer
+                            ${
+                              event.event_type === "booking"
+                                ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                                : "bg-green-100 text-green-800 hover:bg-green-200"
+                            }
+                          `}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEventClick(event);
+                            }}
+                          >
+                            {event.title}
+                          </div>
+                        ))}
+                        {dayEvents.length > 3 && (
+                          <div className="text-xs text-gray-500 text-center">
+                            +{dayEvents.length - 3} more
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Event Modal */}
+      <EventModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        onSubmit={handleAddEvent}
+        selectedDate={selectedDate}
+        groupId={groupId}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        isOpen={isEventDetailModalOpen}
+        onClose={() => setIsEventDetailModalOpen(false)}
+        event={selectedEvent}
+        onEventUpdate={handleEventUpdate}
+      />
     </div>
   );
 };

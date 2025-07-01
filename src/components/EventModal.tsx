@@ -1,13 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from 'lucide-react';
-import { format } from 'date-fns';
-import { useGroups } from '@/hooks/useGroups';
+import React from "react";
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { useGroups } from "@/hooks/useGroups";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -16,7 +28,7 @@ interface EventModalProps {
     title: string;
     date: Date;
     time: string;
-    type: 'booking' | 'task';
+    type: "booking" | "task";
     assignee: string;
     description: string;
     category: string;
@@ -25,22 +37,30 @@ interface EventModalProps {
   groupId: string | null;
 }
 
-export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }: EventModalProps) => {
+export const EventModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  selectedDate,
+  groupId
+}: EventModalProps) => {
   const [formData, setFormData] = useState({
-    title: '',
+    title: "",
     date: selectedDate || new Date(),
-    time: '',
-    type: 'booking' as 'booking' | 'task',
-    assignee: '',
-    description: '',
-    category: ''
+    time: "",
+    type: "booking" as "booking" | "task",
+    assignee: "",
+    description: "",
+    category: ""
   });
-  const [groupMembers, setGroupMembers] = useState<Array<{id: string, full_name: string, email: string}>>([]);
+  const [groupMembers, setGroupMembers] = useState<
+    Array<{ id: string; full_name: string; email: string }>
+  >([]);
   const { getGroupMembers } = useGroups();
 
   useEffect(() => {
     if (selectedDate) {
-      setFormData(prev => ({ ...prev, date: selectedDate }));
+      setFormData((prev) => ({ ...prev, date: selectedDate }));
     }
   }, [selectedDate]);
 
@@ -56,16 +76,21 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.title && formData.time && formData.assignee && formData.category) {
+    if (
+      formData.title &&
+      formData.time &&
+      formData.assignee &&
+      formData.category
+    ) {
       onSubmit(formData);
       setFormData({
-        title: '',
+        title: "",
         date: new Date(),
-        time: '',
-        type: 'booking',
-        assignee: '',
-        description: '',
-        category: ''
+        time: "",
+        type: "booking",
+        assignee: "",
+        description: "",
+        category: ""
       });
     }
   };
@@ -73,13 +98,13 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
   const handleClose = () => {
     onClose();
     setFormData({
-      title: '',
+      title: "",
       date: new Date(),
-      time: '',
-      type: 'booking',
-      assignee: '',
-      description: '',
-      category: ''
+      time: "",
+      type: "booking",
+      assignee: "",
+      description: "",
+      category: ""
     });
   };
 
@@ -99,7 +124,9 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
               placeholder="T.ex. Veterinärbesök eller Handla mat"
               required
             />
@@ -111,8 +138,13 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
               <Input
                 id="date"
                 type="date"
-                value={format(formData.date, 'yyyy-MM-dd')}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: new Date(e.target.value) }))}
+                value={format(formData.date, "yyyy-MM-dd")}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    date: new Date(e.target.value)
+                  }))
+                }
                 required
               />
             </div>
@@ -122,7 +154,9 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
                 id="time"
                 type="time"
                 value={formData.time}
-                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, time: e.target.value }))
+                }
                 required
               />
             </div>
@@ -131,7 +165,12 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="type">Typ *</Label>
-              <Select value={formData.type} onValueChange={(value: 'booking' | 'task') => setFormData(prev => ({ ...prev, type: value }))}>
+              <Select
+                value={formData.type}
+                onValueChange={(value: "booking" | "task") =>
+                  setFormData((prev) => ({ ...prev, type: value }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -143,12 +182,17 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
             </div>
             <div>
               <Label htmlFor="assignee">Ansvarig *</Label>
-              <Select value={formData.assignee} onValueChange={(value) => setFormData(prev => ({ ...prev, assignee: value }))}>
+              <Select
+                value={formData.assignee}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, assignee: value }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Välj person" />
                 </SelectTrigger>
                 <SelectContent>
-                  {groupMembers.map(member => (
+                  {groupMembers.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
                       👤 {member.full_name}
                     </SelectItem>
@@ -160,7 +204,12 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
 
           <div>
             <Label htmlFor="category">Kategori *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+            <Select
+              value={formData.category}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, category: value }))
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Välj kategori" />
               </SelectTrigger>
@@ -180,7 +229,12 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value
+                }))
+              }
               placeholder="Ytterligare information..."
               rows={3}
             />
@@ -190,9 +244,7 @@ export const EventModal = ({ isOpen, onClose, onSubmit, selectedDate, groupId }:
             <Button type="button" variant="outline" onClick={handleClose}>
               Avbryt
             </Button>
-            <Button type="submit">
-              Lägg till händelse
-            </Button>
+            <Button type="submit">Lägg till händelse</Button>
           </div>
         </form>
       </DialogContent>

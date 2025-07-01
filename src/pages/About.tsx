@@ -1,73 +1,72 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Users, Shield, Zap, Heart, Target } from 'lucide-react';
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Calendar,
+  Users,
+  Shield,
+  Zap,
+  Heart,
+  Code,
+  Globe,
+  Smartphone,
+  Mail,
+  HelpCircle
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function About() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             {/* Hero Section */}
             <div className="text-center mb-12">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Calendar className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Om FamiljKal</h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                En modern familjekalender som hjälper hushåll att organisera sina aktiviteter, 
-                dela ansvar och hålla koll på viktiga händelser.
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                About FamCal
+              </h1>
+              <p className="text-xl text-gray-600">
+                The modern family calendar that brings everyone together
               </p>
             </div>
 
-            {/* Mission */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Target className="w-5 h-5 text-blue-600" />
-                  <span>Vårt uppdrag</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">
-                  FamiljKal skapades med visionen att göra det enklare för familjer och hushåll 
-                  att koordinera sina liv. Vi tror att när alla i familjen har koll på vad som 
-                  händer, kan ni fokusera på det som verkligen betyder något - tid tillsammans.
-                </p>
+            {/* Mission Statement */}
+            <Card className="mb-12">
+              <CardContent className="pt-8">
+                <div className="text-center">
+                  <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    Our Mission
+                  </h2>
+                  <p className="text-lg text-gray-600 leading-relaxed">
+                    We believe that families should spend more time together and
+                    less time coordinating. FamCal makes it easy to share
+                    schedules, assign tasks, and stay organized as a family.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
             {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    <span>Delad Kalender</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    Alla i hushållet ser samma kalender i realtid. Lägg till händelser, 
-                    bokningar och uppgifter som alla kan se och hantera.
-                  </p>
-                </CardContent>
-              </Card>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Users className="w-5 h-5 text-blue-600" />
-                    <span>Grupphantering</span>
+                    <span>Group Collaboration</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
-                    Skapa grupper för olika hushåll eller aktiviteter. Bjud in medlemmar 
-                    och hantera roller och behörigheter enkelt.
+                    Create groups for your family, roommates, or any household.
+                    Share calendars, assign tasks, and keep everyone in sync
+                    with real-time updates.
                   </p>
                 </CardContent>
               </Card>
@@ -75,14 +74,15 @@ export default function About() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Zap className="w-5 h-5 text-blue-600" />
-                    <span>Realtidsuppdateringar</span>
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                    <span>Smart Calendar</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
-                    När någon lägger till eller ändrar en händelse syns det omedelbart 
-                    för alla medlemmar i gruppen.
+                    View your schedule in month, week, or day format. Add
+                    events, tasks, and appointments with ease. Everything
+                    updates in real-time for all group members.
                   </p>
                 </CardContent>
               </Card>
@@ -91,13 +91,14 @@ export default function About() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Shield className="w-5 h-5 text-blue-600" />
-                    <span>Säker & Privat</span>
+                    <span>Privacy & Security</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
-                    Din data är säker med oss. Vi använder modern kryptering och 
-                    säkerhetsstandarder för att skydda din information.
+                    Your data is secure and private. We use modern encryption
+                    and security standards. Your events are only shared with
+                    members of your groups.
                   </p>
                 </CardContent>
               </Card>
@@ -105,53 +106,116 @@ export default function About() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Target className="w-5 h-5 text-blue-600" />
-                    <span>Ansvarstilldelning</span>
+                    <Zap className="w-5 h-5 text-blue-600" />
+                    <span>Real-time Updates</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
-                    Tilldela ansvar för olika uppgifter och händelser. 
-                    Håll koll på vem som ska göra vad och när.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Heart className="w-5 h-5 text-blue-600" />
-                    <span>Användarvänlig</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    Enkelt och intuitivt gränssnitt som fungerar på alla enheter. 
-                    Ingen komplicerad setup - kom igång direkt.
+                    When someone adds or changes an event, everyone in the group
+                    sees it immediately. No manual refresh needed - everything
+                    stays synchronized automatically.
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Team/Story */}
-            <Card>
+            {/* Technology Stack */}
+            <Card className="mb-12">
               <CardHeader>
-                <CardTitle>Vår historia</CardTitle>
+                <CardTitle className="flex items-center space-x-2">
+                  <Code className="w-5 h-5 text-blue-600" />
+                  <span>Built with Modern Technology</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    FamiljKal föddes ur en personlig behov - att bättre koordinera vårt 
-                    familjeliv. Vi upptäckte att många familjer kämpade med samma utmaningar: 
-                    att hålla koll på alla aktiviteter, bokningar och uppgifter som behöver 
-                    göras i ett hushåll.
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                      <Code className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      React & TypeScript
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Modern, type-safe frontend built with React and TypeScript
+                      for reliability and performance.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                      <Globe className="w-6 h-6 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      Supabase
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Powerful backend with real-time database, authentication,
+                      and row-level security.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                      <Smartphone className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      Responsive Design
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Works perfectly on desktop, tablet, and mobile devices
+                      with a beautiful, modern interface.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Team Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Our Team</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-6">
+                  FamCal is developed by a small team passionate about making
+                  family life easier through technology. We believe in building
+                  tools that actually help people and respect their privacy.
+                </p>
+
+                <div className="bg-blue-50 rounded-lg p-6">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Get in Touch
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Have questions, suggestions, or feedback? We'd love to hear
+                    from you!
                   </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    Med modern teknologi och fokus på användarvänlighet skapade vi en 
-                    lösning som verkligen fungerar för familjer. FamiljKal hjälper dig 
-                    att minska stress, öka kommunikationen och skapa mer kvalitetstid 
-                    tillsammans.
-                  </p>
+                  <div className="text-center">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Get in Touch
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Have questions or suggestions? We'd love to hear from you!
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <a
+                        href="mailto:hello@familjkal.se"
+                        className="link-hover-animation-colored inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Send us an email
+                      </a>
+                      <Link
+                        to="/faq"
+                        className="link-hover-animation-colored inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        View FAQ
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -162,4 +226,4 @@ export default function About() {
       <Footer />
     </div>
   );
-} 
+}

@@ -1,71 +1,140 @@
-import { useState } from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import { useEvents } from '@/hooks/useEvents';
-import { useGroups } from '@/hooks/useGroups';
-import { Plus, CheckSquare, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
+import React from "react";
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEvents } from "@/hooks/useEvents";
+import { Plus, Trash2, List, Circle } from "lucide-react";
+import { TodoSkeleton, LoadingSpinner } from "@/components/SkeletonLoaders";
+import { supabase } from "@/integrations/supabase/client";
 
-const Todos = () => {
-  const { user } = useAuth();
-  const { groups } = useGroups();
-  const selectedGroupId = groups.length > 0 ? groups[0].id : null;
-  const { events, createEvent, refetch } = useEvents(selectedGroupId);
+export default function Todos() {
+  const [newTodo, setNewTodo] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [newTodo, setNewTodo] = useState({
-    title: '',
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-    time: '12:00'
-  });
+  const [deletingTodos, setDeletingTodos] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const todos = events.filter(event => event.event_type === 'task');
+  // Get the current group ID from localStorage
+  const getCurrentGroupId = () => {
+    return localStorage.getItem("selectedGroupId");
+  };
 
-  const handleAddTodo = async (e: React.FormEvent) => {
+  const selectedGroupId = getCurrentGroupId();
+  const { events, loading, createEvent } = useEvents(selectedGroupId);
+
+  const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTodo.title.trim() || !selectedGroupId) return;
+    if (!newTodo.trim() || !selectedGroupId || !user) return;
 
-    const { error } = await createEvent({
-      title: newTodo.title,
-      description: newTodo.description,
-      event_date: new Date(newTodo.date).toISOString(),
-      event_time: newTodo.time,
-      event_type: 'task',
-      category: 'Uppgift',
-      assignee_id: user?.id || null,
-    });
+    setIsAdding(true);
 
-    if (!error) {
-      setNewTodo({
-        title: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        time: '12:00'
+    try {
+      const todoData = {
+        title: newTodo.trim(),
+        description: "",
+        event_date: new Date().toISOString().split("T")[0],
+        event_time: "12:00",
+        event_type: "task" as const,
+        assignee_id: user.id,
+        category: "General"
+      };
+
+      const { error } = await createEvent(todoData);
+
+      if (error) {
+        throw error;
+      }
+
+      setNewTodo("");
+
+      toast({
+        title: "Todo added!",
+        description: "Your todo has been added successfully."
       });
+    } catch {
+      toast({
+        title: "Error adding todo",
+        description: "Could not add your todo. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setIsAdding(false);
-      setTimeout(() => {
-        refetch();
-      }, 100);
     }
   };
+
+  const toggleTodo = async (todoId: string, completed: boolean) => {
+    try {
+      // For now, we'll just delete the todo when marked as completed
+      // In a real implementation, you'd update a completed field
+      if (completed) {
+        const { error } = await supabase
+          .from("events")
+          .delete()
+          .eq("id", todoId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Todo completed!",
+          description: "Great job!"
+        });
+      }
+    } catch {
+      toast({
+        title: "Error updating todo",
+        description: "Could not update your todo. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteTodo = async (todoId: string) => {
+    setDeletingTodos((prev) => new Set(prev).add(todoId));
+
+    try {
+      const { error } = await supabase.from("events").delete().eq("id", todoId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Todo deleted!",
+        description: "Your todo has been removed."
+      });
+    } catch {
+      toast({
+        title: "Error deleting todo",
+        description: "Could not delete your todo. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingTodos((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(todoId);
+        return newSet;
+      });
+    }
+  };
+
+  // Filter tasks from events
+  const todos = events.filter((event) => event.event_type === "task");
 
   if (!selectedGroupId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
         <Header />
-        <div className="flex-1 container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardContent className="text-center py-12">
-                <p className="text-gray-500">Du måste skapa eller vara medlem i en grupp för att använda to-dos.</p>
-              </CardContent>
-            </Card>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <List className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              No group selected
+            </h2>
+            <p className="text-gray-600">Please select a group to view todos</p>
           </div>
         </div>
         <Footer />
@@ -76,104 +145,119 @@ const Todos = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
-      
-      <div className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Mina To-dos</h1>
-            <Button onClick={() => setIsAdding(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Lägg till uppgift
-            </Button>
-          </div>
 
-          {isAdding && (
-            <Card className="mb-6 animate-in slide-in-from-top-2 duration-300">
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            {/* Hero Section */}
+            <div className="text-center mb-12">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <List className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">To-dos</h1>
+              <p className="text-xl text-gray-600">
+                Keep track of tasks and get things done together
+              </p>
+            </div>
+
+            {/* Add Todo Form */}
+            <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Ny uppgift</CardTitle>
+                <CardTitle>Add New Todo</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleAddTodo} className="space-y-4">
+                <form onSubmit={addTodo} className="flex gap-3">
                   <Input
-                    placeholder="Uppgiftens namn"
-                    value={newTodo.title}
-                    onChange={(e) => setNewTodo(prev => ({ ...prev, title: e.target.value }))}
-                    required
+                    value={newTodo}
+                    onChange={(e) => setNewTodo(e.target.value)}
+                    placeholder="What needs to be done?"
+                    disabled={isAdding}
+                    className="flex-1"
                   />
-                  <Textarea
-                    placeholder="Beskrivning (valfritt)"
-                    value={newTodo.description}
-                    onChange={(e) => setNewTodo(prev => ({ ...prev, description: e.target.value }))}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      type="date"
-                      value={newTodo.date}
-                      onChange={(e) => setNewTodo(prev => ({ ...prev, date: e.target.value }))}
-                    />
-                    <Input
-                      type="time"
-                      value={newTodo.time}
-                      onChange={(e) => setNewTodo(prev => ({ ...prev, time: e.target.value }))}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-3">
-                    <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
-                      Avbryt
-                    </Button>
-                    <Button type="submit">
-                      Lägg till
-                    </Button>
-                  </div>
+                  <Button type="submit" disabled={isAdding || !newTodo.trim()}>
+                    {isAdding ? (
+                      <div className="flex items-center space-x-2">
+                        <LoadingSpinner size="small" />
+                        <span>Adding...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add
+                      </>
+                    )}
+                  </Button>
                 </form>
               </CardContent>
             </Card>
-          )}
 
-          <div className="space-y-4">
-            {todos.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Inga uppgifter än. Lägg till din första uppgift!</p>
-                </CardContent>
-              </Card>
-            ) : (
-              todos.map((todo, index) => (
-                <Card 
-                  key={todo.id} 
-                  className="animate-in slide-in-from-bottom-2 duration-300"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{todo.title}</h3>
-                        {todo.description && (
-                          <p className="text-gray-600 mb-3">{todo.description}</p>
-                        )}
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {format(new Date(todo.event_date), 'dd MMM yyyy', { locale: sv })} kl. {todo.event_time}
+            {/* Todos List */}
+            <div className="space-y-6">
+              {loading ? (
+                // Show skeleton loaders while loading
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TodoSkeleton key={i} />
+                  ))}
+                </div>
+              ) : todos.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Circle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">
+                      No todos yet. Add your first todo above!
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Circle className="w-5 h-5 text-blue-600" />
+                      <span>Your Todos ({todos.length})</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {todos.map((todo) => (
+                        <div
+                          key={todo.id}
+                          className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors animate-in slide-in-from-top-2 duration-300"
+                        >
+                          <Checkbox
+                            onCheckedChange={(checked) =>
+                              toggleTodo(todo.id, checked as boolean)
+                            }
+                            className="flex-shrink-0"
+                          />
+                          <span className="flex-1 text-gray-900">
+                            {todo.title}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteTodo(todo.id)}
+                            disabled={deletingTodos.has(todo.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            {deletingTodos.has(todo.id) ? (
+                              <LoadingSpinner size="small" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                          Markera som klar
-                        </Button>
-                      </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-              ))
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>
   );
-};
-
-export default Todos;
+}

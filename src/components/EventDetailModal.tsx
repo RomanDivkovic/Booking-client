@@ -1,18 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, User, Tag, Edit, Trash2, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
-import { useAuth } from '@/contexts/AuthContext';
-import { useGroups } from '@/hooks/useGroups';
-import { Event } from '@/hooks/useEvents';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import React from "react";
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Calendar, Clock, User, Tag, Edit, Trash2, X } from "lucide-react";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGroups } from "@/hooks/useGroups";
+import { Event } from "@/hooks/useEvents";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface EventDetailModalProps {
   isOpen: boolean;
@@ -21,33 +33,40 @@ interface EventDetailModalProps {
   onEventUpdate: () => void;
 }
 
-export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: EventDetailModalProps) => {
+export const EventDetailModal = ({
+  isOpen,
+  onClose,
+  event,
+  onEventUpdate
+}: EventDetailModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [groupMembers, setGroupMembers] = useState<Array<{id: string, full_name: string, email: string}>>([]);
+  const [groupMembers, setGroupMembers] = useState<
+    Array<{ id: string; full_name: string; email: string }>
+  >([]);
   const { getGroupMembers } = useGroups();
-  
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
-    type: 'booking' as 'booking' | 'task',
-    assignee: '',
-    category: ''
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    type: "booking" as "booking" | "task",
+    assignee: "",
+    category: ""
   });
 
   useEffect(() => {
     if (event) {
       setFormData({
         title: event.title,
-        description: event.description || '',
-        date: format(new Date(event.event_date), 'yyyy-MM-dd'),
+        description: event.description || "",
+        date: format(new Date(event.event_date), "yyyy-MM-dd"),
         time: event.event_time,
         type: event.event_type,
-        assignee: event.assignee_id || '',
+        assignee: event.assignee_id || "",
         category: event.category
       });
     }
@@ -70,7 +89,7 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('events')
+        .from("events")
         .update({
           title: formData.title,
           description: formData.description,
@@ -79,25 +98,25 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
           event_type: formData.type,
           category: formData.category,
           assignee_id: formData.assignee || null,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
-        .eq('id', event.id);
+        .eq("id", event.id);
 
       if (error) throw error;
 
       toast({
-        title: 'Händelse uppdaterad!',
-        description: 'Händelsen har uppdaterats framgångsrikt.',
+        title: "Händelse uppdaterad!",
+        description: "Händelsen har uppdaterats framgångsrikt."
       });
 
       setIsEditing(false);
       onEventUpdate();
     } catch (error) {
-      console.error('Error updating event:', error);
+      console.log(error);
       toast({
-        title: 'Fel vid uppdatering',
-        description: 'Kunde inte uppdatera händelsen. Försök igen.',
-        variant: 'destructive',
+        title: "Fel vid uppdatering",
+        description: "Kunde inte uppdatera händelsen. Försök igen.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -107,39 +126,40 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
   const handleDeleteEvent = async () => {
     if (!event || !user) return;
 
-    if (!confirm('Är du säker på att du vill ta bort denna händelse?')) {
+    if (!window.confirm("Är du säker på att du vill ta bort denna händelse?")) {
       return;
     }
 
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('events')
+        .from("events")
         .delete()
-        .eq('id', event.id);
+        .eq("id", event.id);
 
       if (error) throw error;
 
       toast({
-        title: 'Händelse borttagen!',
-        description: 'Händelsen har tagits bort.',
+        title: "Händelse borttagen!",
+        description: "Händelsen har tagits bort."
       });
 
       onClose();
       onEventUpdate();
     } catch (error) {
-      console.error('Error deleting event:', error);
+      console.log(error);
       toast({
-        title: 'Fel vid borttagning',
-        description: 'Kunde inte ta bort händelsen. Försök igen.',
-        variant: 'destructive',
+        title: "Fel vid borttagning",
+        description: "Kunde inte ta bort händelsen. Försök igen.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const canEdit = event && (event.created_by === user?.id || user?.id === event.assignee_id);
+  const canEdit =
+    event && (event.created_by === user?.id || user?.id === event.assignee_id);
 
   if (!event) return null;
 
@@ -150,7 +170,9 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5" />
-              <span>{isEditing ? 'Redigera händelse' : 'Händelsedetaljer'}</span>
+              <span>
+                {isEditing ? "Redigera händelse" : "Händelsedetaljer"}
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               {canEdit && !isEditing && (
@@ -193,7 +215,9 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, title: e.target.value }))
+                }
                 required
               />
             </div>
@@ -205,7 +229,9 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
                   id="date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, date: e.target.value }))
+                  }
                   required
                 />
               </div>
@@ -215,7 +241,9 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
                   id="time"
                   type="time"
                   value={formData.time}
-                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, time: e.target.value }))
+                  }
                   required
                 />
               </div>
@@ -224,7 +252,12 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="type">Typ *</Label>
-                <Select value={formData.type} onValueChange={(value: 'booking' | 'task') => setFormData(prev => ({ ...prev, type: value }))}>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value: "booking" | "task") =>
+                    setFormData((prev) => ({ ...prev, type: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -236,12 +269,17 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
               </div>
               <div>
                 <Label htmlFor="assignee">Ansvarig *</Label>
-                <Select value={formData.assignee} onValueChange={(value) => setFormData(prev => ({ ...prev, assignee: value }))}>
+                <Select
+                  value={formData.assignee}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, assignee: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj person" />
                   </SelectTrigger>
                   <SelectContent>
-                    {groupMembers.map(member => (
+                    {groupMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         👤 {member.full_name}
                       </SelectItem>
@@ -253,7 +291,12 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
 
             <div>
               <Label htmlFor="category">Kategori *</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, category: value }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Välj kategori" />
                 </SelectTrigger>
@@ -273,24 +316,35 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value
+                  }))
+                }
                 rows={3}
               />
             </div>
 
             <div className="flex justify-end space-x-3">
-              <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+              >
                 Avbryt
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Sparar...' : 'Spara ändringar'}
+                {loading ? "Sparar..." : "Spara ändringar"}
               </Button>
             </div>
           </form>
         ) : (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{event.title}</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {event.title}
+              </h3>
               {event.description && (
                 <p className="text-gray-600">{event.description}</p>
               )}
@@ -300,35 +354,41 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  {format(new Date(event.event_date), 'EEEE dd MMMM yyyy', { locale: sv })}
+                  {format(new Date(event.event_date), "EEEE dd MMMM yyyy", {
+                    locale: sv
+                  })}
                 </span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-600">kl. {event.event_time}</span>
+                <span className="text-sm text-gray-600">
+                  kl. {event.event_time}
+                </span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Tag className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-600">{event.category}</span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  {event.assignee?.full_name || 'Ingen tilldelad'}
+                  {event.assignee?.full_name || "Ingen tilldelad"}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                event.event_type === 'booking' 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-green-100 text-green-800'
-              }`}>
-                {event.event_type === 'booking' ? '📅 Bokning' : '✅ Uppgift'}
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  event.event_type === "booking"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-green-100 text-green-800"
+                }`}
+              >
+                {event.event_type === "booking" ? "📅 Bokning" : "✅ Uppgift"}
               </span>
             </div>
           </div>
@@ -336,4 +396,4 @@ export const EventDetailModal = ({ isOpen, onClose, event, onEventUpdate }: Even
       </DialogContent>
     </Dialog>
   );
-}; 
+};

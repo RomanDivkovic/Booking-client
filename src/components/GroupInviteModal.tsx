@@ -1,47 +1,58 @@
-
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { Mail } from 'lucide-react';
+import React from "react";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { Mail } from "lucide-react";
 
 interface GroupInviteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onInvite: (email: string) => Promise<{ error?: any }>;
+  onInvite: (email: string) => Promise<{ error?: unknown }>;
   groupName: string;
 }
 
-export const GroupInviteModal = ({ isOpen, onClose, onInvite, groupName }: GroupInviteModalProps) => {
-  const [email, setEmail] = useState('');
+export const GroupInviteModal = ({
+  isOpen,
+  onClose,
+  onInvite,
+  groupName
+}: GroupInviteModalProps) => {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
 
     setLoading(true);
-    
+
     const { error } = await onInvite(email);
-    
+
     if (error) {
       toast({
-        title: 'Fel vid inbjudan',
-        description: typeof error === 'string' ? error : 'Kunde inte bjuda in användaren. Försök igen.',
-        variant: 'destructive',
+        title: "Fel vid inbjudan",
+        description:
+          typeof error === "string"
+            ? error
+            : "Kunde inte bjuda in användaren. Försök igen.",
+        variant: "destructive"
       });
     } else {
       toast({
-        title: 'Inbjudan skickad!',
-        description: `${email} har lagts till i gruppen "${groupName}".`,
+        title: "Inbjudan skickad!",
+        description: `${groupName} har lagts till i gruppen "${groupName}".`
       });
-      setEmail('');
       onClose();
     }
-    
+
     setLoading(false);
   };
 
@@ -60,11 +71,11 @@ export const GroupInviteModal = ({ isOpen, onClose, onInvite, groupName }: Group
               <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="exempel@email.com"
                 className="pl-10"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <p className="text-sm text-gray-600 mt-1">
@@ -73,15 +84,11 @@ export const GroupInviteModal = ({ isOpen, onClose, onInvite, groupName }: Group
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose}
-            >
+            <Button type="button" variant="outline" onClick={onClose}>
               Avbryt
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Bjuder in...' : 'Bjud in'}
+              {loading ? "Bjuder in..." : "Bjud in"}
             </Button>
           </div>
         </form>

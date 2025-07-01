@@ -1,14 +1,23 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { HelpCircle, Calendar, Users, Shield, Zap, Mail } from 'lucide-react';
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from "@/components/ui/accordion";
+import { HelpCircle, Calendar, Users, Shield, Zap, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function FAQ() {
+  const [openItem, setOpenItem] = useState<string | undefined>(undefined);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto">
@@ -17,15 +26,16 @@ export default function FAQ() {
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <HelpCircle className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Vanliga frågor</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Frequently Asked Questions
+              </h1>
               <p className="text-xl text-gray-600">
-                Hitta svar på de vanligaste frågorna om FamiljKal
+                Find answers to the most common questions about FamCal
               </p>
             </div>
 
             {/* FAQ Categories - Two Columns on Desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
               {/* Left Column */}
               <div className="space-y-6">
                 {/* Getting Started */}
@@ -33,39 +43,59 @@ export default function FAQ() {
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Calendar className="w-5 h-5 text-blue-600" />
-                      <span>Komma igång</span>
+                      <span>Getting Started</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-1" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Hur skapar jag ett konto?</span>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      value={openItem}
+                      onValueChange={setOpenItem}
+                    >
+                      <AccordionItem
+                        value="item-1"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            How do I create an account?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Klicka på "Registrera" på inloggningssidan och fyll i din e-postadress, 
-                          lösenord och namn. Du får en bekräftelse via e-post för att aktivera ditt konto.
+                          Click "Register" on the login page and fill in your
+                          email address, password, and name. You'll receive a
+                          confirmation email to activate your account.
                         </AccordionContent>
                       </AccordionItem>
-                      
-                      <AccordionItem value="item-2" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Hur skapar jag min första grupp?</span>
+
+                      <AccordionItem
+                        value="item-2"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            How do I create my first group?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Efter inloggning klickar du på "Skapa ny grupp" på gruppväljarsidan. 
-                          Ge gruppen ett namn och beskrivning, sedan kan du bjuda in familjemedlemmar.
+                          After logging in, click "Create new group" on the
+                          group selection page. Give the group a name and
+                          description, then you can invite family members.
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="item-3">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Kan jag använda FamiljKal utan grupp?</span>
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Can I use FamCal without a group?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Nej, FamiljKal är designat för samarbete. Du måste skapa eller gå med i 
-                          en grupp för att använda kalendern. Detta säkerställer att alla händelser 
-                          delas med rätt personer.
+                          No, FamCal is designed for collaboration. You must
+                          create or join a group to use the calendar. This
+                          ensures all events are shared with the right people.
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -77,38 +107,59 @@ export default function FAQ() {
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Users className="w-5 h-5 text-blue-600" />
-                      <span>Grupper & Delning</span>
+                      <span>Groups & Sharing</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-4" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Hur bjuder jag in någon till min grupp?</span>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      value={openItem}
+                      onValueChange={setOpenItem}
+                    >
+                      <AccordionItem
+                        value="item-4"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            How do I invite someone to my group?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          I gruppväljaren, klicka på "Bjud in medlem" bredvid din grupp. 
-                          Ange personens e-postadress. Personen måste redan ha ett konto i FamiljKal.
+                          In the group selector, click "Invite member" next to
+                          your group. Enter the person's email address. The
+                          person must already have an account in FamCal.
                         </AccordionContent>
                       </AccordionItem>
-                      
-                      <AccordionItem value="item-5" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Kan jag vara med i flera grupper?</span>
+
+                      <AccordionItem
+                        value="item-5"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Can I be in multiple groups?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Ja, du kan vara medlem i flera grupper. Varje grupp har sin egen kalender 
-                          och händelser. Du kan växla mellan grupper i gruppväljaren.
+                          Yes, you can be a member of multiple groups. Each
+                          group has its own calendar and events. You can switch
+                          between groups in the group selector.
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="item-6">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Vem kan se mina händelser?</span>
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Who can see my events?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Endast medlemmar i samma grupp kan se händelserna. Dina händelser är 
-                          privata och delas inte med andra grupper eller användare utanför din grupp.
+                          Only members of the same group can see the events.
+                          Your events are private and not shared with other
+                          groups or users outside your group.
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -122,39 +173,61 @@ export default function FAQ() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
-                      <Calendar className="w-5 h-5 text-blue-600" />
-                      <span>Händelser & Kalender</span>
+                      <span>Events & Calendar</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-7" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Hur lägger jag till en händelse?</span>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      value={openItem}
+                      onValueChange={setOpenItem}
+                    >
+                      <AccordionItem
+                        value="item-7"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            How do I add an event?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Klicka på en dag i kalendern eller på "Lägg till händelse" i sidopanelen. 
-                          Fyll i titel, datum, tid, typ (bokning/uppgift), ansvarig person och kategori.
+                          Click on a day in the calendar or on "Add event" in
+                          the sidebar. Fill in title, date, time, type
+                          (booking/task), responsible person, and category.
                         </AccordionContent>
                       </AccordionItem>
-                      
-                      <AccordionItem value="item-8" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Vad är skillnaden mellan bokning och uppgift?</span>
+
+                      <AccordionItem
+                        value="item-8"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            What's the difference between booking and task?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          <strong>Bokning:</strong> Tider som är schemalagda (läkarbesök, möten, etc.)<br/>
-                          <strong>Uppgift:</strong> Saker som behöver göras (handla mat, städa, etc.)
+                          <strong>Booking:</strong> Scheduled times (doctor
+                          appointments, meetings, etc.)
+                          <br />
+                          <strong>Task:</strong> Things that need to be done
+                          (grocery shopping, cleaning, etc.)
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="item-9">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Kan jag redigera eller ta bort händelser?</span>
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Can I edit or delete events?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Ja, du kan redigera händelser som du har skapat. Klicka på händelsen 
-                          för att öppna redigeringsläget. Du kan också ta bort händelser du skapat.
+                          Yes, you can edit events that you created. Click on
+                          the event to open edit mode. You can also delete
+                          events you created.
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -166,28 +239,43 @@ export default function FAQ() {
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Zap className="w-5 h-5 text-blue-600" />
-                      <span>Realtidsuppdateringar</span>
+                      <span>Real-time Updates</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-10" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Uppdateras kalendern automatiskt?</span>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      value={openItem}
+                      onValueChange={setOpenItem}
+                    >
+                      <AccordionItem
+                        value="item-10"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Does the calendar update automatically?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Ja! När någon i gruppen lägger till eller ändrar en händelse syns det 
-                          omedelbart för alla andra medlemmar. Ingen manuell uppdatering behövs.
+                          Yes! When someone in the group adds or changes an
+                          event, it appears immediately for all other members.
+                          No manual refresh is needed.
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="item-11">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Fungerar det på alla enheter?</span>
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Does it work on all devices?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          FamiljKal fungerar på alla moderna webbläsare på dator, surfplatta och mobil. 
-                          Realtidsuppdateringar fungerar på alla enheter.
+                          FamCal works on all modern browsers on computer,
+                          tablet, and mobile. Real-time updates work on all
+                          devices.
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -199,28 +287,43 @@ export default function FAQ() {
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Shield className="w-5 h-5 text-blue-600" />
-                      <span>Säkerhet & Integritet</span>
+                      <span>Security & Privacy</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-12" className="border-b border-gray-200">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Är min data säker?</span>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      value={openItem}
+                      onValueChange={setOpenItem}
+                    >
+                      <AccordionItem
+                        value="item-12"
+                        className="border-b border-gray-200"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Is my data secure?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Ja, vi använder modern kryptering och säkerhetsstandarder. Din data lagras 
-                          säkert och delas endast med medlemmar i dina grupper.
+                          Yes, we use modern encryption and security standards.
+                          Your data is stored securely and only shared with
+                          members of your groups.
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="item-13">
-                        <AccordionTrigger className="text-left hover:no-underline py-4">
-                          <span className="font-medium">Kan jag ta bort mitt konto?</span>
+                        <AccordionTrigger className="text-left hover:no-underline py-4 group">
+                          <span className="font-medium">
+                            Can I delete my account?
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          Ja, du kan ta bort ditt konto i profilinställningarna. Detta tar bort 
-                          all din data permanent. Observera att detta påverkar grupper du har skapat.
+                          Yes, you can delete your account in profile settings.
+                          This permanently removes all your data. Note that this
+                          affects groups you have created.
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -234,27 +337,28 @@ export default function FAQ() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Mail className="w-5 h-5 text-blue-600" />
-                  <span>Behöver du mer hjälp?</span>
+                  <span>Need more help?</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 mb-4">
-                  Hittade du inte svaret du letade efter? Vi är här för att hjälpa dig!
+                  Didn't find the answer you were looking for? We're here to
+                  help!
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <a 
-                    href="mailto:support@familjkal.se" 
-                    className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  <a
+                    href="mailto:support@familjkal.se"
+                    className="link-hover-animation-colored inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <Mail className="w-4 h-4 mr-2" />
-                    Kontakta support
+                    Contact support
                   </a>
-                  <a 
-                    href="/about" 
-                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  <Link
+                    to="/about"
+                    className="link-hover-animation-colored inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Läs mer om FamiljKal
-                  </a>
+                    Learn more about FamCal
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -265,4 +369,4 @@ export default function FAQ() {
       <Footer />
     </div>
   );
-} 
+}
