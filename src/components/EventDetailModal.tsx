@@ -146,6 +146,7 @@ export const EventDetailModal = ({
 
       onClose();
       onEventUpdate();
+      window.location.reload();
     } catch (error) {
       console.log(error);
       toast({
@@ -165,7 +166,7 @@ export const EventDetailModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[600px] p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">

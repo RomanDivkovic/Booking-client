@@ -12,6 +12,7 @@ import { useEvents } from "@/hooks/useEvents";
 import { Plus, Trash2, List, Circle } from "lucide-react";
 import { TodoSkeleton, LoadingSpinner } from "@/components/SkeletonLoaders";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 export default function Todos() {
   const [newTodo, setNewTodo] = useState("");
@@ -19,6 +20,9 @@ export default function Todos() {
   const [deletingTodos, setDeletingTodos] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const { toast } = useToast();
+  const [todoDate, setTodoDate] = useState<string>(
+    format(new Date(), "yyyy-MM-dd")
+  );
 
   // Get the current group ID from localStorage
   const getCurrentGroupId = () => {
@@ -26,7 +30,7 @@ export default function Todos() {
   };
 
   const selectedGroupId = getCurrentGroupId();
-  const { events, loading, createEvent } = useEvents(selectedGroupId);
+  const { events, loading, createEvent, refetch } = useEvents(selectedGroupId);
 
   const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +42,7 @@ export default function Todos() {
       const todoData = {
         title: newTodo.trim(),
         description: "",
-        event_date: new Date().toISOString().split("T")[0],
+        event_date: todoDate,
         event_time: "12:00",
         event_type: "task" as const,
         assignee_id: user.id,
@@ -46,12 +50,14 @@ export default function Todos() {
       };
 
       const { error } = await createEvent(todoData);
+      await refetch();
 
       if (error) {
         throw error;
       }
 
       setNewTodo("");
+      setTodoDate(format(new Date(), "yyyy-MM-dd"));
 
       toast({
         title: "Todo added!",
@@ -99,6 +105,7 @@ export default function Todos() {
 
     try {
       const { error } = await supabase.from("events").delete().eq("id", todoId);
+      await refetch();
 
       if (error) throw error;
 
@@ -166,15 +173,29 @@ export default function Todos() {
                 <CardTitle>Add New Todo</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={addTodo} className="flex gap-3">
+                <form
+                  onSubmit={addTodo}
+                  className="flex flex-col sm:flex-row gap-3 w-full"
+                >
                   <Input
                     value={newTodo}
                     onChange={(e) => setNewTodo(e.target.value)}
                     placeholder="What needs to be done?"
                     disabled={isAdding}
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                   />
-                  <Button type="submit" disabled={isAdding || !newTodo.trim()}>
+                  <Input
+                    type="date"
+                    value={todoDate}
+                    onChange={(e) => setTodoDate(e.target.value)}
+                    disabled={isAdding}
+                    className="w-full sm:w-48"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isAdding || !newTodo.trim()}
+                    className="w-full sm:w-auto"
+                  >
                     {isAdding ? (
                       <div className="flex items-center space-x-2">
                         <LoadingSpinner size="small" />
@@ -193,8 +214,8 @@ export default function Todos() {
 
             {/* Todos List */}
             <div className="space-y-6">
-              {loading ? (
-                // Show skeleton loaders while loading
+              {loading || isAdding || deletingTodos.size > 0 ? (
+                // Show skeleton loaders while loading or adding
                 <div className="space-y-4">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <TodoSkeleton key={i} />

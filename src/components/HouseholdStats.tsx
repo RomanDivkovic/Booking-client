@@ -59,15 +59,15 @@ export const HouseholdStats = ({ events }: HouseholdStatsProps) => {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">This Week</p>
               <p className="text-xs text-gray-500">Events</p>
             </div>
           </div>
-          <span className="text-xl font-bold text-purple-600">
+          <span className="text-xl font-bold text-yellow-600">
             {thisWeekEvents.length}
           </span>
         </div>
