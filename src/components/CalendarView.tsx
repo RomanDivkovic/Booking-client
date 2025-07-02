@@ -2,10 +2,8 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEvents } from "@/hooks/useEvents";
-import { EventModal } from "./EventModal";
-import { EventDetailModal } from "./EventDetailModal";
 import { Event } from "@/hooks/useEvents";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   format,
   startOfMonth,
@@ -24,25 +22,26 @@ import { CalendarDaySkeleton } from "./SkeletonLoaders";
 
 interface CalendarViewProps {
   groupId: string;
-
   onEventClick?: (event: Event) => void;
-
   onDateClick?: (date: Date) => void;
+  loading?: boolean;
+  optimisticEvents?: Event[];
 }
 
 export const CalendarView = ({
   groupId,
   onEventClick,
-  onDateClick
+  onDateClick,
+  loading: externalLoading = false,
+  optimisticEvents = []
 }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);
   const [view, setView] = useState<"month" | "week">("month");
 
   const { events, loading } = useEvents(groupId);
+  const isLoading =
+    typeof externalLoading === "boolean" ? externalLoading : loading;
+  const allEvents = [...events, ...optimisticEvents];
 
   // Get days based on current view
   const getDaysForView = () => {
@@ -84,31 +83,17 @@ export const CalendarView = ({
   const allDays = getDaysForView();
 
   const getEventsForDay = (date: Date) => {
-    return events.filter((event) =>
+    return allEvents.filter((event) =>
       isSameDay(new Date(event.event_date), date)
     );
   };
 
   const handleDayClick = (date: Date) => {
-    setSelectedDate(date);
-    setIsEventModalOpen(true);
     if (onDateClick) onDateClick(date);
   };
 
   const handleEventClick = (event: Event) => {
-    setSelectedEvent(event);
-    setIsEventDetailModalOpen(true);
     if (onEventClick) onEventClick(event);
-  };
-
-  const handleAddEvent = () => {
-    // The event will be added through the modal and real-time updates will handle the refresh
-    setIsEventModalOpen(false);
-  };
-
-  const handleEventUpdate = () => {
-    // The event will be updated through the modal and real-time updates will handle the refresh
-    setIsEventDetailModalOpen(false);
   };
 
   const goToPrevious = () => {
@@ -188,13 +173,6 @@ export const CalendarView = ({
           >
             Today
           </Button>
-          <Button
-            onClick={() => setIsEventModalOpen(true)}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
         </div>
       </div>
 
@@ -219,7 +197,7 @@ export const CalendarView = ({
           <div
             className={`grid gap-1 ${view === "month" ? "grid-cols-7" : "grid-cols-7"}`}
           >
-            {loading
+            {isLoading
               ? // Show skeleton loaders while loading
                 Array.from({ length: view === "month" ? 42 : 7 }).map(
                   (_, i) => <CalendarDaySkeleton key={i} />
@@ -231,6 +209,10 @@ export const CalendarView = ({
                     view === "month" ? isSameMonth(day, currentDate) : true;
                   const isToday = isSameDay(day, new Date());
 
+                  // Check if this day has an optimistic event
+                  const hasOptimistic = dayEvents.some(
+                    (event) => (event as any).optimistic
+                  );
                   return (
                     <div
                       key={index}
@@ -253,6 +235,11 @@ export const CalendarView = ({
                       </div>
 
                       <div className="space-y-1">
+                        {hasOptimistic && (
+                          <div className="mb-1">
+                            <CalendarDaySkeleton />
+                          </div>
+                        )}
                         {dayEvents.slice(0, 3).map((event) => (
                           <div
                             key={event.id}
@@ -284,23 +271,6 @@ export const CalendarView = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Event Modal */}
-      <EventModal
-        isOpen={isEventModalOpen}
-        onClose={() => setIsEventModalOpen(false)}
-        onSubmit={handleAddEvent}
-        selectedDate={selectedDate}
-        groupId={groupId}
-      />
-
-      {/* Event Detail Modal */}
-      <EventDetailModal
-        isOpen={isEventDetailModalOpen}
-        onClose={() => setIsEventDetailModalOpen(false)}
-        event={selectedEvent}
-        onEventUpdate={handleEventUpdate}
-      />
     </div>
   );
 };

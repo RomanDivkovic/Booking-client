@@ -1,73 +1,89 @@
-# Welcome to your Lovable project
+# FamCal
 
-## Project info
+FamCal is a collaborative calendar app designed for families and households. Share events, assign tasks, and keep everyone in sync—on desktop and mobile, in real time.
 
-**URL**: https://lovable.dev/projects/690845fc-4e3a-41b3-825b-6df57f8d6a1a
+## Features
 
-## How can I edit this code?
+- **Group-based calendar sharing**: Create or join a group to share events and tasks with your household or family.
+- **Real-time updates**: All changes are instantly synced across all devices using Supabase.
+- **Event & task management**: Add, edit, and delete events or tasks. Assign responsibilities to group members.
+- **Invitations**: Invite others to your group by email.
+- **Responsive design**: Works seamlessly on desktop, tablet, and mobile.
+- **Modern UI**: Built with shadcn-ui and Tailwind CSS for a clean, accessible experience.
+- **Authentication**: Secure login and group access.
+- **Profile & stats**: View household stats and manage your profile.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/) (build tool)
+- [Supabase](https://supabase.com/) (database, auth, real-time)
+- [Tailwind CSS](https://tailwindcss.com/) (utility-first styling)
+- [shadcn-ui](https://ui.shadcn.com/) (UI components)
+- [React Query](https://tanstack.com/query/latest) (data fetching/caching)
+- [Jest](https://jestjs.io/) (testing)
+- [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/) (code quality)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/690845fc-4e3a-41b3-825b-6df57f8d6a1a) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm (v9+ recommended)
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Setup
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Clone the repository
+ git clone <YOUR_GIT_URL>
+ cd <YOUR_PROJECT_NAME>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Install dependencies
+ npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Set up environment variables
+# Copy .env.example to .env and fill in your Supabase credentials
+ cp .env.example .env
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# 4. Start the development server
+ npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at [http://localhost:5173](http://localhost:5173) by default.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Linting & Formatting
+- Run `npm run lint` to check for code issues.
+- Run `npm run lint:fix` to auto-fix lint errors.
+- Run `npm run format` to format code with Prettier.
 
-**Use GitHub Codespaces**
+### Testing
+- Run `npm test` to execute tests with Jest.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
+You can deploy FamCal to any platform that supports Node.js. For production builds:
 
-This project is built with:
+```sh
+npm run build
+npm run preview
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+If using Supabase, make sure your environment variables are set for production.
 
-## How can I deploy this project?
+## Project Structure
 
-Simply open [Lovable](https://lovable.dev/projects/690845fc-4e3a-41b3-825b-6df57f8d6a1a) and click on Share -> Publish.
+- `src/` — Main source code
+  - `components/` — UI and feature components
+  - `pages/` — App pages (Calendar, Todos, Auth, etc.)
+  - `hooks/` — Custom React hooks
+  - `contexts/` — React context providers
+  - `integrations/` — Supabase client and types
+  - `lib/` — Utilities
 
-## Can I connect a custom domain to my Lovable project?
+## Support & Feedback
 
-Yes, you can!
+- For questions or help, see the [FAQ](/faq) or [About](/about) pages in the app.
+- Contact: [support@familjkal.se](mailto:support@familjkal.se)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+© 2024 FamCal. All rights reserved.

@@ -22,6 +22,8 @@ const Index = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [optimisticEvents, setOptimisticEvents] = useState<any[]>([]);
 
   const {
     events,
@@ -50,6 +52,54 @@ const Index = () => {
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
     localStorage.setItem("selectedGroupId", groupId);
+  };
+
+  const handleAddEvent = async (eventData: {
+    title: string;
+    date: Date;
+    time: string;
+    type: "booking" | "task";
+    assignee: string;
+    description: string;
+    category: string;
+  }) => {
+    setIsAddingEvent(true);
+    // Create a temporary optimistic event
+    const optimisticEvent = {
+      id: `optimistic-${Date.now()}`,
+      title: eventData.title,
+      description: eventData.description,
+      event_date: eventData.date.toISOString(),
+      event_time: eventData.time,
+      event_type: eventData.type,
+      category: eventData.category,
+      assignee_id: eventData.assignee,
+      created_by: user?.id,
+      group_id: selectedGroupId,
+      assignee: undefined,
+      optimistic: true
+    };
+    setOptimisticEvents((prev) => [...prev, optimisticEvent]);
+    const { error } = await createEvent({
+      title: eventData.title,
+      description: eventData.description,
+      event_date: eventData.date.toISOString(),
+      event_time: eventData.time,
+      event_type: eventData.type,
+      category: eventData.category,
+      assignee_id: eventData.assignee
+    });
+    await refetch();
+    setIsAddingEvent(false);
+    setOptimisticEvents([]); // Clear optimistic events after refetch
+    if (!error) {
+      setIsModalOpen(false);
+      window.location.reload();
+    }
+  };
+
+  const handleEventUpdate = () => {
+    refetch();
   };
 
   if (authLoading) {
@@ -112,38 +162,6 @@ const Index = () => {
     );
   }
 
-  const handleAddEvent = async (eventData: {
-    title: string;
-    date: Date;
-    time: string;
-    type: "booking" | "task";
-    assignee: string;
-    description: string;
-    category: string;
-  }) => {
-    const { error } = await createEvent({
-      title: eventData.title,
-      description: eventData.description,
-      event_date: eventData.date.toISOString(),
-      event_time: eventData.time,
-      event_type: eventData.type,
-      category: eventData.category,
-      assignee_id: eventData.assignee
-    });
-
-    if (!error) {
-      setIsModalOpen(false);
-      // Add a small delay to show the animation
-      setTimeout(() => {
-        refetch();
-      }, 100);
-    }
-  };
-
-  const handleEventUpdate = () => {
-    refetch();
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
       <Header />
@@ -174,6 +192,8 @@ const Index = () => {
                   setSelectedDate(date);
                   setIsModalOpen(true);
                 }}
+                loading={eventsLoading || isAddingEvent}
+                optimisticEvents={optimisticEvents}
               />
             )}
           </div>
