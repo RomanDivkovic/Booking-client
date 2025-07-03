@@ -1,12 +1,8 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-      <Header />
-
       <main className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -36,8 +32,6 @@ export default function NotFound() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

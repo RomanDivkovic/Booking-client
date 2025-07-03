@@ -46,6 +46,12 @@ export const Header = () => {
                 Todos
               </Link>
               <Link
+                to="/invitations"
+                className="link-hover-animation text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Inbjudningar
+              </Link>
+              <Link
                 to="/profile"
                 className="link-hover-animation text-gray-600 hover:text-gray-900 transition-colors"
               >
@@ -75,6 +81,9 @@ export const Header = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/todos">Todos</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/invitations">Inbjudningar</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleSignOut}

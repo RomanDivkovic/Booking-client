@@ -12,6 +12,9 @@ import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import TOS from "./pages/TOS";
 import NotFound from "./pages/NotFound";
+import MainLayout from "@/components/MainLayout";
+import { Analytics } from "@vercel/analytics/react";
+import Invitations from "./pages/Invitations";
 
 const queryClient = new QueryClient();
 
@@ -23,15 +26,19 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/todos" element={<Todos />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/invitations" element={<Invitations />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/tos" element={<TOS />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/todos" element={<Todos />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/tos" element={<TOS />} />
-            <Route path="*" element={<NotFound />} />
           </Routes>
+          <Analytics />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

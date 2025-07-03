@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarView } from "@/components/CalendarView";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { EventModal } from "@/components/EventModal";
 import { EventDetailModal } from "@/components/EventDetailModal";
 import { Sidebar } from "@/components/Sidebar";
@@ -116,14 +114,12 @@ const Index = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <LoadingSpinner size="large" />
             <p className="text-gray-600 mt-4">Loading...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -131,14 +127,12 @@ const Index = () => {
   if (groupsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <LoadingSpinner size="large" />
             <p className="text-gray-600 mt-4">Loading your groups...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -150,22 +144,18 @@ const Index = () => {
   if (!selectedGroupId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <LoadingSpinner size="large" />
             <p className="text-gray-600 mt-4">Selecting group...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-      <Header />
-
       <div className="flex-1 container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 space-y-6">
@@ -217,8 +207,6 @@ const Index = () => {
         event={selectedEvent}
         onEventUpdate={handleEventUpdate}
       />
-
-      <Footer />
     </div>
   );
 };

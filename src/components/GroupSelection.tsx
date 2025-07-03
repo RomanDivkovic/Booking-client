@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { GroupInviteModal } from "./GroupInviteModal";
 import { Footer } from "./Footer";
 import { GroupCardSkeleton, LoadingSpinner } from "./SkeletonLoaders";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GroupSelectionProps {
   onGroupSelect: (groupId: string) => void;
@@ -83,7 +84,26 @@ export const GroupSelection = ({ onGroupSelect }: GroupSelectionProps) => {
   const handleInviteUser = async (email: string) => {
     if (!selectedGroup) return { error: "No group selected" };
 
-    return await inviteUserToGroup(selectedGroup.id, email);
+    const result = await inviteUserToGroup(selectedGroup.id, email);
+
+    // If successful, get the invitation ID for link generation
+    if (!result.error) {
+      // Fetch the invitation ID that was just created
+      const { data: invitations } = await supabase
+        .from("group_invitations")
+        .select("id")
+        .eq("group_id", selectedGroup.id)
+        .eq("invited_email", email.toLowerCase().trim())
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (invitations && invitations.length > 0) {
+        return { ...result, invitationId: invitations[0].id };
+      }
+    }
+
+    return result;
   };
 
   const openInviteModal = (group: { id: string; name: string }) => {
@@ -120,7 +140,7 @@ export const GroupSelection = ({ onGroupSelect }: GroupSelectionProps) => {
               </h1>
               <p className="text-xl text-gray-600">
                 Choose a group to start managing your family calendar with
-                FamCal
+                FamCaly
               </p>
             </div>
 
