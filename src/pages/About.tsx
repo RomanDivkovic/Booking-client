@@ -1,5 +1,3 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Calendar,
@@ -18,8 +16,6 @@ import { Link } from "react-router-dom";
 export default function About() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-      <Header />
-
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
@@ -29,7 +25,7 @@ export default function About() {
                 <Calendar className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                About FamCal
+                About FamCaly
               </h1>
               <p className="text-xl text-gray-600">
                 The modern family calendar that brings everyone together
@@ -46,7 +42,7 @@ export default function About() {
                   </h2>
                   <p className="text-lg text-gray-600 leading-relaxed">
                     We believe that families should spend more time together and
-                    less time coordinating. FamCal makes it easy to share
+                    less time coordinating. FamCaly makes it easy to share
                     schedules, assign tasks, and stay organized as a family.
                   </p>
                 </div>
@@ -179,7 +175,7 @@ export default function About() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-6">
-                  FamCal is developed by a small team passionate about making
+                  FamCaly is developed by a small team passionate about making
                   family life easier through technology. We believe in building
                   tools that actually help people and respect their privacy.
                 </p>
@@ -222,8 +218,6 @@ export default function About() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

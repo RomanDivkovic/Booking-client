@@ -1,13 +1,9 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Shield, User, Calendar } from "lucide-react";
 
 export default function TOS() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-      <Header />
-
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
@@ -248,8 +244,6 @@ export default function TOS() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

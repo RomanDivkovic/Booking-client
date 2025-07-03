@@ -1,6 +1,6 @@
-# FamCal
+# FamCaly
 
-FamCal is a collaborative calendar app designed for families and households. Share events, assign tasks, and keep everyone in sync—on desktop and mobile, in real time.
+FamCaly is a collaborative calendar app designed for families and households. Share events, assign tasks, and keep everyone in sync—on desktop and mobile, in real time.
 
 ## Features
 
@@ -60,7 +60,7 @@ The app will be available at [http://localhost:5173](http://localhost:5173) by d
 
 ## Deployment
 
-You can deploy FamCal to any platform that supports Node.js. For production builds:
+You can deploy FamCaly to any platform that supports Node.js. For production builds:
 
 ```sh
 npm run build
@@ -86,4 +86,4 @@ If using Supabase, make sure your environment variables are set for production.
 
 ---
 
-© 2024 FamCal. All rights reserved.
+© 2024 FamCaly. All rights reserved.

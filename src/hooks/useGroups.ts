@@ -166,40 +166,40 @@ export const useGroups = () => {
     if (!user) return { error: "Not authenticated" };
 
     try {
-      // First check if user exists in profiles
+      const emailLower = email.toLowerCase().trim();
+
+      // Check if user exists in profiles
       const { data: profile } = await supabase
         .from("profiles")
         .select("id, email")
-        .eq("email", email.toLowerCase().trim())
-        .single();
-
-      if (!profile) {
-        return { error: "Användaren finns inte i systemet" };
-      }
-
-      // Check if user is already a member
-      const { data: existingMember } = await supabase
-        .from("group_members")
-        .select("id")
-        .eq("group_id", groupId)
-        .eq("user_id", profile.id)
+        .eq("email", emailLower)
         .maybeSingle();
 
-      if (existingMember) {
-        return { error: "Användaren är redan medlem i gruppen" };
+      // Check if user is already a member
+      if (profile) {
+        const { data: existingMember } = await supabase
+          .from("group_members")
+          .select("id")
+          .eq("group_id", groupId)
+          .eq("user_id", profile.id)
+          .maybeSingle();
+
+        if (existingMember) {
+          return { error: "Användaren är redan medlem i gruppen" };
+        }
       }
 
-      // Check if there's already a pending invitation
+      // Check if there's already a pending invitation for this email
       const { data: existingInvitation } = await supabase
         .from("group_invitations")
         .select("id")
         .eq("group_id", groupId)
-        .eq("invited_user_id", profile.id)
+        .eq("invited_email", emailLower)
         .eq("status", "pending")
         .maybeSingle();
 
       if (existingInvitation) {
-        return { error: "En inbjudan till denna användare finns redan" };
+        return { error: "En inbjudan till denna e-post finns redan" };
       }
 
       // Create invitation
@@ -207,7 +207,8 @@ export const useGroups = () => {
         .from("group_invitations")
         .insert({
           group_id: groupId,
-          invited_user_id: profile.id,
+          invited_user_id: profile?.id || null,
+          invited_email: emailLower,
           invited_by: user.id
         });
 
@@ -215,12 +216,35 @@ export const useGroups = () => {
         return { error: "Kunde inte skapa inbjudan" };
       }
 
-      return { error: null };
+      // If user doesn't exist, we could send an email here
+      // For now, just return success
+      return {
+        error: null,
+        userExists: !!profile,
+        message: profile
+          ? "Inbjudan skickad till befintlig användare"
+          : "Inbjudan skapad för ny användare"
+      };
     } catch (error) {
       console.log(error);
       return { error: "Ett oväntat fel uppstod vid inbjudan" };
     }
   };
+
+  // const generateInvitationLink = (groupId: string, invitationId: string) => {
+  //   const baseUrl = window.location.origin;
+  //   return `${baseUrl}/auth?invite=${invitationId}`;
+  // };
+
+  // const copyInvitationLink = async (groupId: string, invitationId: string) => {
+  //   const link = generateInvitationLink(groupId, invitationId);
+  //   try {
+  //     await navigator.clipboard.writeText(link);
+  //     return { success: true, link };
+  //   } catch (error) {
+  //     return { success: false, error: "Kunde inte kopiera länken" };
+  //   }
+  // };
 
   const acceptInvitation = async (invitationId: string) => {
     if (!user) return { error: "Not authenticated" };

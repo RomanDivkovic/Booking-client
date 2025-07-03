@@ -1,7 +1,5 @@
 import React from "react";
 import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,7 +132,6 @@ export default function Todos() {
   if (!selectedGroupId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <List className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -144,15 +141,12 @@ export default function Todos() {
             <p className="text-gray-600">Please select a group to view todos</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-      <Header />
-
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
@@ -277,8 +271,6 @@ export default function Todos() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

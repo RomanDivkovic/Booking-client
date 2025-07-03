@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion,
@@ -16,8 +14,6 @@ export default function FAQ() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-      <Header />
-
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto">
@@ -30,7 +26,7 @@ export default function FAQ() {
                 Frequently Asked Questions
               </h1>
               <p className="text-xl text-gray-600">
-                Find answers to the most common questions about FamCal
+                Find answers to the most common questions about FamCaly
               </p>
             </div>
 
@@ -89,11 +85,11 @@ export default function FAQ() {
                       <AccordionItem value="item-3">
                         <AccordionTrigger className="text-left hover:no-underline py-4 group">
                           <span className="font-medium">
-                            Can I use FamCal without a group?
+                            Can I use FamCaly without a group?
                           </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          No, FamCal is designed for collaboration. You must
+                          No, FamCaly is designed for collaboration. You must
                           create or join a group to use the calendar. This
                           ensures all events are shared with the right people.
                         </AccordionContent>
@@ -130,7 +126,7 @@ export default function FAQ() {
                         <AccordionContent className="text-gray-600 leading-relaxed">
                           In the group selector, click "Invite member" next to
                           your group. Enter the person's email address. The
-                          person must already have an account in FamCal.
+                          person must already have an account in FamCaly.
                         </AccordionContent>
                       </AccordionItem>
 
@@ -273,7 +269,7 @@ export default function FAQ() {
                           </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-600 leading-relaxed">
-                          FamCal works on all modern browsers on computer,
+                          FamCaly works on all modern browsers on computer,
                           tablet, and mobile. Real-time updates work on all
                           devices.
                         </AccordionContent>
@@ -357,7 +353,7 @@ export default function FAQ() {
                     to="/about"
                     className="link-hover-animation-colored inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Learn more about FamCal
+                    Learn more about FamCaly
                   </Link>
                 </div>
               </CardContent>
@@ -365,8 +361,6 @@ export default function FAQ() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

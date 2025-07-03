@@ -61,7 +61,7 @@ export default function Auth() {
             <Calendar className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to FamCal
+            Welcome to FamCaly
           </h1>
           <p className="text-gray-600 mb-8">
             The modern family calendar that brings everyone together
