@@ -65,6 +65,38 @@ export const GroupInviteModal = ({
       if (result.invitationId) {
         const link = `${window.location.origin}/auth?invite=${result.invitationId}`;
         setInvitationLink(link);
+        // Skicka e-post om användaren inte finns
+        if (!result.userExists) {
+          try {
+            const res = await fetch("/api/send-invite-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: email,
+                inviteLink: link,
+                groupName
+              })
+            });
+            if (res.ok) {
+              toast({
+                title: "E-post skickad!",
+                description: `En inbjudan har skickats till ${email}.`
+              });
+            } else {
+              toast({
+                title: "Kunde inte skicka e-post",
+                description: "Kopiera länken och skicka den manuellt.",
+                variant: "destructive"
+              });
+            }
+          } catch {
+            toast({
+              title: "Kunde inte skicka e-post",
+              description: "Kopiera länken och skicka den manuellt.",
+              variant: "destructive"
+            });
+          }
+        }
       }
 
       setEmail("");
@@ -84,8 +116,7 @@ export const GroupInviteModal = ({
         description: "Inbjudningslänken har kopierats till urklipp."
       });
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast({
         title: "Kunde inte kopiera länken",
         description: "Försök kopiera länken manuellt.",
