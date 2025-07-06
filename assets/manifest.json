@@ -1,6 +1,6 @@
 {
-  "name": "FamCaly",
-  "short_name": "FamCaly",
+  "name": "FamCal",
+  "short_name": "FamCal",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

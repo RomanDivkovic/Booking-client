@@ -69,40 +69,23 @@ export default [
     }
   },
   {
-    files: ["**/*.{js,jsx}"],
+    files: ["api/**/*.{ts,js}"],
     languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-      ecmaFeatures: {
-        jsx: true
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module"
       },
       globals: {
-        ...globals.browser,
+        ...globals.node,
         ...globals.es2021
       }
     },
     plugins: {
-      react,
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
-      prettier
+      "@typescript-eslint": typescript
     },
     rules: {
-      "react/jsx-uses-react": "off",
-      "react/react-in-jsx-scope": "off",
-      "react/prop-types": "off",
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true }
-      ],
-      "prettier/prettier": "error"
-    },
-    settings: {
-      react: {
-        version: "detect"
-      }
+      "@typescript-eslint/no-unused-vars": "error"
     }
   },
   {

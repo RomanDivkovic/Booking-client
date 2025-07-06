@@ -1,6 +1,6 @@
-# FamCaly
+# FamCal
 
-FamCaly is a collaborative calendar app designed for families and households. Share events, assign tasks, and keep everyone in sync—on desktop and mobile, in real time.
+FamCal is a collaborative calendar app designed for families and households. Share events, assign tasks, and keep everyone in sync—on desktop and mobile, in real time.
 
 ## Features
 
@@ -82,8 +82,8 @@ If using Supabase, make sure your environment variables are set for production.
 ## Support & Feedback
 
 - For questions or help, see the [FAQ](/faq) or [About](/about) pages in the app.
-- Contact: [support@familjkal.se](mailto:support@familjkal.se)
+- Contact: [support@famcaly.com](mailto:support@famcaly.com)
 
 ---
 
-© 2024 FamCaly. All rights reserved.
+© 2025 FamCal. All rights reserved.
