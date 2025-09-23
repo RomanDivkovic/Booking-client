@@ -1,13 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Plus, List, User } from "lucide-react";
+import { Plus, List, User, UserPlus } from "lucide-react";
 
 interface SidebarProps {
   onAddClick: () => void;
+  onInviteClick: () => void;
 }
 
-export const Sidebar = ({ onAddClick }: SidebarProps) => {
+export const Sidebar = ({ onAddClick, onInviteClick }: SidebarProps) => {
   return (
     <div className="space-y-6">
       {/* Quick Actions */}
@@ -19,6 +20,10 @@ export const Sidebar = ({ onAddClick }: SidebarProps) => {
           <Button onClick={onAddClick} className="w-full">
             <Plus className="w-4 h-4 mr-2" />
             Add Event
+          </Button>
+          <Button onClick={onInviteClick} className="w-full" variant="outline">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Invite Member
           </Button>
         </CardContent>
       </Card>

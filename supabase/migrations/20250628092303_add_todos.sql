@@ -42,3 +42,16 @@ CREATE POLICY "Group creators can view members" ON public.group_members
       SELECT created_by FROM public.groups WHERE id = group_id
     )
   );
+
+CREATE TABLE IF NOT EXISTS public.todos (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  group_id UUID REFERENCES public.groups ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  due_date DATE,
+  completed BOOLEAN NOT NULL DEFAULT false,
+  assignee_id UUID REFERENCES auth.users,
+  created_by UUID REFERENCES auth.users,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);

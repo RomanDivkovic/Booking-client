@@ -114,27 +114,27 @@ export const EventModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />
-            <span>Lägg till händelse</span>
+            <span>Add event</span>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Titel *</Label>
+            <Label htmlFor="title">Title *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
               }
-              placeholder="T.ex. Veterinärbesök eller Handla mat"
+              placeholder="E.g. Veterinarian visit or Buy groceries"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="date">Datum</Label>
+              <Label htmlFor="date">Date</Label>
               <Input
                 id="date"
                 type="date"
@@ -149,7 +149,7 @@ export const EventModal = ({
               />
             </div>
             <div>
-              <Label htmlFor="time">Tid *</Label>
+              <Label htmlFor="time">Time *</Label>
               <Input
                 id="time"
                 type="time"
@@ -164,7 +164,7 @@ export const EventModal = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="type">Typ *</Label>
+              <Label htmlFor="type">Type *</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value: "booking" | "task") =>
@@ -175,13 +175,13 @@ export const EventModal = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="booking">📅 Bokning</SelectItem>
-                  <SelectItem value="task">✅ Uppgift</SelectItem>
+                  <SelectItem value="booking">📅 Booking</SelectItem>
+                  <SelectItem value="task">✅ Task</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="assignee">Ansvarig *</Label>
+              <Label htmlFor="assignee">Assignee *</Label>
               <Select
                 value={formData.assignee}
                 onValueChange={(value) =>
@@ -189,7 +189,7 @@ export const EventModal = ({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Välj person" />
+                  <SelectValue placeholder="Select person" />
                 </SelectTrigger>
                 <SelectContent>
                   {groupMembers.map((member) => (
@@ -203,7 +203,7 @@ export const EventModal = ({
           </div>
 
           <div>
-            <Label htmlFor="category">Kategori *</Label>
+            <Label htmlFor="category">Category *</Label>
             <Select
               value={formData.category}
               onValueChange={(value) =>
@@ -211,21 +211,21 @@ export const EventModal = ({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Välj kategori" />
+                <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Hushåll">🏠 Hushåll</SelectItem>
-                <SelectItem value="Barn">👶 Barn</SelectItem>
-                <SelectItem value="Husdjur">🐕 Husdjur</SelectItem>
-                <SelectItem value="Hälsa">💊 Hälsa</SelectItem>
-                <SelectItem value="Fritid">🎯 Fritid</SelectItem>
-                <SelectItem value="Övrigt">📋 Övrigt</SelectItem>
+                <SelectItem value="Household">🏠 Household</SelectItem>
+                <SelectItem value="Children">👶 Children</SelectItem>
+                <SelectItem value="Pets">🐕 Pets</SelectItem>
+                <SelectItem value="Health">💊 Health</SelectItem>
+                <SelectItem value="Leisure">🎯 Leisure</SelectItem>
+                <SelectItem value="Other">📋 Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="description">Beskrivning</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -235,16 +235,16 @@ export const EventModal = ({
                   description: e.target.value
                 }))
               }
-              placeholder="Ytterligare information..."
+              placeholder="Additional information..."
               rows={3}
             />
           </div>
 
           <div className="flex justify-end space-x-3">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Avbryt
+              Cancel
             </Button>
-            <Button type="submit">Lägg till händelse</Button>
+            <Button type="submit">Add event</Button>
           </div>
         </form>
       </DialogContent>

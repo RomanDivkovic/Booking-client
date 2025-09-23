@@ -1,14 +1,13 @@
 -- Create group_invitations table for managing invitations
-CREATE TABLE public.group_invitations (
+CREATE TABLE IF NOT EXISTS public.group_invitations (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  group_id UUID REFERENCES public.groups ON DELETE CASCADE NOT NULL,
-  invited_user_id UUID REFERENCES auth.users ON DELETE CASCADE,
+  group_id UUID REFERENCES public.groups ON DELETE CASCADE,
+  invited_user_id UUID REFERENCES auth.users ON DELETE SET NULL, -- Added this line
   invited_email TEXT NOT NULL,
-  invited_by UUID REFERENCES auth.users NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
+  invited_by UUID REFERENCES auth.users,
+  status TEXT NOT NULL DEFAULT 'pending',
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  UNIQUE(group_id, invited_email)
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 -- Enable Row Level Security
@@ -127,4 +126,4 @@ $$;
 -- Trigger to handle invitations when new user signs up
 CREATE OR REPLACE TRIGGER on_auth_user_created_with_invitations
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_with_invitations(); 
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_with_invitations();

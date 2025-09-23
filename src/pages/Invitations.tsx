@@ -21,14 +21,14 @@ export default function Invitations() {
       const { error } = await acceptInvitation(invitationId);
       if (error) {
         toast({
-          title: "Fel vid acceptering",
-          description: "Kunde inte acceptera inbjudan. Försök igen.",
+          title: "Error accepting invitation",
+          description: "Could not accept the invitation. Please try again.",
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Inbjudan accepterad!",
-          description: "Du har nu tillgång till gruppen."
+          title: "Invitation accepted!",
+          description: "You now have access to the group."
         });
       }
     } finally {
@@ -42,14 +42,14 @@ export default function Invitations() {
       const { error } = await declineInvitation(invitationId);
       if (error) {
         toast({
-          title: "Fel vid avvisning",
-          description: "Kunde inte avvisa inbjudan. Försök igen.",
+          title: "Error declining invitation",
+          description: "Could not decline the invitation. Please try again.",
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Inbjudan avvisad",
-          description: "Inbjudan har avvisats."
+          title: "Invitation declined",
+          description: "The invitation has been declined."
         });
       }
     } finally {
@@ -63,7 +63,7 @@ export default function Invitations() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <LoadingSpinner size="large" />
-            <p className="mt-4 text-gray-600">Laddar inbjudningar...</p>
+            <p className="mt-4 text-gray-600">Loading invitations...</p>
           </div>
         </div>
       </div>
@@ -78,11 +78,9 @@ export default function Invitations() {
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Mail className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Inbjudningar
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Invitations</h1>
           <p className="text-xl text-gray-600">
-            Hantera dina inbjudningar till grupper
+            Manage your invitations to groups
           </p>
         </div>
 
@@ -93,7 +91,7 @@ export default function Invitations() {
               <CardContent className="text-center py-12">
                 <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">
-                  Du har inga väntande inbjudningar.
+                  You have no pending invitations.
                 </p>
               </CardContent>
             </Card>
@@ -106,7 +104,7 @@ export default function Invitations() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Users className="w-5 h-5 text-blue-600" />
-                    <span>Inbjudan till {invitation.group?.name}</span>
+                    <span>Invitation to {invitation.group?.name}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -114,8 +112,8 @@ export default function Invitations() {
                     <div>
                       <p className="text-gray-600 mb-2">
                         {invitation.invited_by_user?.full_name ||
-                          "Okänd användare"}
-                        har bjudit in dig till gruppen "{invitation.group?.name}
+                          "Unknown user"}
+                        has invited you to the group "{invitation.group?.name}
                         ".
                       </p>
                       {invitation.group?.description && (
@@ -129,9 +127,9 @@ export default function Invitations() {
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>
-                          Skapad{" "}
+                          Created{" "}
                           {new Date(invitation.created_at).toLocaleDateString(
-                            "sv-SE"
+                            "en-US"
                           )}
                         </span>
                       </div>
@@ -146,12 +144,12 @@ export default function Invitations() {
                         {processingInvitation === invitation.id ? (
                           <div className="flex items-center space-x-2">
                             <LoadingSpinner size="small" />
-                            <span>Accepterar...</span>
+                            <span>Accepting...</span>
                           </div>
                         ) : (
                           <>
                             <Check className="w-4 h-4 mr-2" />
-                            Acceptera
+                            Accept
                           </>
                         )}
                       </Button>
@@ -164,12 +162,12 @@ export default function Invitations() {
                         {processingInvitation === invitation.id ? (
                           <div className="flex items-center space-x-2">
                             <LoadingSpinner size="small" />
-                            <span>Avvisar...</span>
+                            <span>Declining...</span>
                           </div>
                         ) : (
                           <>
                             <X className="w-4 h-4 mr-2" />
-                            Avvisa
+                            Decline
                           </>
                         )}
                       </Button>

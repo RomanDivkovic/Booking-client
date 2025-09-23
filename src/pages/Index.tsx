@@ -10,7 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "@/hooks/useEvents";
 import { useGroups } from "@/hooks/useGroups";
 import { LoadingSpinner } from "@/components/SkeletonLoaders";
-
+import { GroupInviteModal } from "@/components/GroupInviteModal";
+import { supabase } from "@/integrations/supabase/client";
+1;
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { groups, loading: groupsLoading } = useGroups();
@@ -22,6 +24,9 @@ const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const [optimisticEvents, setOptimisticEvents] = useState<any[]>([]);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteGroupName, setInviteGroupName] = useState("");
+  const { inviteUserToGroup } = useGroups();
 
   const {
     events,
@@ -160,7 +165,15 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 space-y-6">
             <HouseholdStats events={events} />
-            <Sidebar onAddClick={() => setIsModalOpen(true)} />
+            <Sidebar
+              onAddClick={() => setIsModalOpen(true)}
+              onInviteClick={() => {
+                setInviteGroupName(
+                  groups.find((g) => g.id === selectedGroupId)?.name || ""
+                );
+                setIsInviteModalOpen(true);
+              }}
+            />
           </div>
 
           <div className="lg:col-span-3">
@@ -206,6 +219,31 @@ const Index = () => {
         onClose={() => setIsDetailModalOpen(false)}
         event={selectedEvent}
         onEventUpdate={handleEventUpdate}
+      />
+
+      <GroupInviteModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onInvite={async (email) => {
+          if (!selectedGroupId) return { error: "No group selected" };
+          const result = await inviteUserToGroup(selectedGroupId, email);
+          // Hämta invitationId för länk
+          if (!result.error) {
+            const { data: invitations } = await supabase
+              .from("group_invitations")
+              .select("id")
+              .eq("group_id", selectedGroupId)
+              .eq("invited_email", email.toLowerCase().trim())
+              .eq("status", "pending")
+              .order("created_at", { ascending: false })
+              .limit(1);
+            if (invitations && invitations.length > 0) {
+              return { ...result, invitationId: invitations[0].id };
+            }
+          }
+          return result;
+        }}
+        groupName={inviteGroupName}
       />
     </div>
   );
