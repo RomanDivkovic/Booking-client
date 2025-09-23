@@ -5,6 +5,7 @@ import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import prettier from "eslint-plugin-prettier";
+import jest from "eslint-plugin-jest";
 import globals from "globals";
 
 export default [
@@ -96,7 +97,15 @@ export default [
       ".next/**",
       "coverage/**",
       "*.config.js",
-      "*.config.ts"
+      "*.config.ts",
+      "src/pages/__tests__/**"
     ]
+  },
+  {
+    files: ["src/pages/__tests__/**/*.{ts,tsx}"],
+    ...jest.configs["flat/recommended"],
+    globals: {
+      ...globals.jest
+    }
   }
 ];

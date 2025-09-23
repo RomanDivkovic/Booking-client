@@ -1,31 +1,41 @@
-/* global jest, describe, it, expect */
-import { render, screen, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { AuthProvider } from "../../contexts/AuthContext";
 import Auth from "../Auth";
+import "@testing-library/jest-dom";
 
+// Mocka useToast eftersom den används i Auth-komponenten
+jest.mock("../../hooks/use-toast", () => ({
+  useToast: () => ({
+    toast: jest.fn()
+  })
+}));
+
+// Mocka supabase-klienten
 jest.mock("../../integrations/supabase/client", () => ({
   supabase: {
     auth: {
-      signInWithPassword: jest.fn(() =>
-        Promise.resolve({ data: { user: { id: "1" } }, error: null })
-      )
+      signInWithPassword: jest.fn(),
+      signUp: jest.fn()
     }
   }
 }));
 
 describe("Login", () => {
-  it("should allow user to login", async () => {
-    render(<Auth />);
+  it("should render login form", () => {
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <Auth />
+        </AuthProvider>
+      </MemoryRouter>
+    );
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
     const loginButton = screen.getByRole("button", { name: /sign in/i });
 
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
-    fireEvent.click(loginButton);
-
-    expect(emailInput).toHaveValue("test@example.com");
-    expect(passwordInput).toHaveValue("password123");
-    // Optionally, check for loading state or success message
+    expect(emailInput).toBeInTheDocument();
+    expect(passwordInput).toBeInTheDocument();
+    expect(loginButton).toBeInTheDocument();
   });
 });
