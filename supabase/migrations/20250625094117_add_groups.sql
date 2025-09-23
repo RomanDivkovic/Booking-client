@@ -38,3 +38,12 @@ CREATE POLICY "Group creators can delete members" ON public.group_members
       WHERE id = group_id AND created_by = auth.uid()
     )
   );
+
+CREATE TABLE IF NOT EXISTS public.group_members (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  group_id UUID REFERENCES public.groups ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  role TEXT NOT NULL DEFAULT 'member',
+  joined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  UNIQUE(group_id, user_id)
+);

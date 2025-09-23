@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,10 @@ export default function Auth() {
 
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,16 +32,39 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        await signIn(formData.email, formData.password);
+        const { error } = await signIn(formData.email, formData.password);
+        if (!error) {
+          navigate(from, { replace: true });
+        } else {
+          toast({
+            title: "Login failed",
+            description:
+              (error as Error)?.message || "Invalid email or password.",
+            variant: "destructive"
+          });
+        }
       } else {
-        await signUp(formData.email, formData.password, formData.fullName);
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to verify your account."
-        });
+        const { error } = await signUp(
+          formData.email,
+          formData.password,
+          formData.fullName
+        );
+        if (!error) {
+          toast({
+            title: "Registration successful",
+            description: "Your account has been created successfully!"
+          });
+          navigate(from, { replace: true });
+        } else {
+          toast({
+            title: "Registration failed",
+            description:
+              (error as Error)?.message || "Failed to create account.",
+            variant: "destructive"
+          });
+        }
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

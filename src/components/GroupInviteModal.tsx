@@ -44,20 +44,20 @@ export const GroupInviteModal = ({
 
     if (result.error) {
       toast({
-        title: "Fel vid inbjudan",
+        title: "Error inviting user",
         description:
           typeof result.error === "string"
             ? result.error
-            : "Kunde inte bjuda in användaren. Försök igen.",
+            : "Could not invite the user. Please try again.",
         variant: "destructive"
       });
     } else {
       const message = result.userExists
-        ? `Inbjudan skickad till ${email}!`
-        : `Inbjudan skapad för ${email}. De kommer att få tillgång när de registrerar sig.`;
+        ? `Invitation sent to ${email}!`
+        : `Invitation created for ${email}. They will get access when they register.`;
 
       toast({
-        title: "Inbjudan skickad!",
+        title: "Invitation sent!",
         description: message
       });
 
@@ -79,20 +79,20 @@ export const GroupInviteModal = ({
             });
             if (res.ok) {
               toast({
-                title: "E-post skickad!",
-                description: `En inbjudan har skickats till ${email}.`
+                title: "E-mail sent!",
+                description: `An invitation has been sent to ${email}.`
               });
             } else {
               toast({
-                title: "Kunde inte skicka e-post",
-                description: "Kopiera länken och skicka den manuellt.",
+                title: "Could not send e-mail",
+                description: "Copy the link and send it manually.",
                 variant: "destructive"
               });
             }
           } catch {
             toast({
-              title: "Kunde inte skicka e-post",
-              description: "Kopiera länken och skicka den manuellt.",
+              title: "Could not send e-mail",
+              description: "Copy the link and send it manually.",
               variant: "destructive"
             });
           }
@@ -112,14 +112,14 @@ export const GroupInviteModal = ({
       await navigator.clipboard.writeText(invitationLink);
       setCopied(true);
       toast({
-        title: "Länk kopierad!",
-        description: "Inbjudningslänken har kopierats till urklipp."
+        title: "Link copied!",
+        description: "Invitation link copied to clipboard."
       });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast({
-        title: "Kunde inte kopiera länken",
-        description: "Försök kopiera länken manuellt.",
+        title: "Could not copy the link",
+        description: "Try copying the link manually.",
         variant: "destructive"
       });
     }
@@ -129,12 +129,12 @@ export const GroupInviteModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Bjud in till {groupName}</DialogTitle>
+          <DialogTitle>Invite to {groupName}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email">E-postadress</Label>
+            <Label htmlFor="email">Email address</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -148,17 +148,16 @@ export const GroupInviteModal = ({
               />
             </div>
             <p className="text-sm text-gray-600 mt-1">
-              Användaren kommer att få tillgång till gruppen när de registrerar
-              sig.
+              The user will get access to the group when they register.
             </p>
           </div>
 
           <div className="flex justify-end space-x-3">
             <Button type="button" variant="outline" onClick={onClose}>
-              Avbryt
+              Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Bjuder in..." : "Bjud in"}
+              {loading ? "Inviting..." : "Invite"}
             </Button>
           </div>
         </form>
@@ -166,10 +165,10 @@ export const GroupInviteModal = ({
         {invitationLink && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h4 className="font-medium text-blue-900 mb-2">
-              Dela inbjudningslänk
+              Share invitation link
             </h4>
             <p className="text-sm text-blue-700 mb-3">
-              Du kan också dela denna länk direkt med personen:
+              You can also share this link directly with the person:
             </p>
             <div className="flex items-center space-x-2">
               <Input

@@ -16,7 +16,6 @@ import { Plus, Users, Calendar, UserPlus } from "lucide-react";
 import { useGroups } from "@/hooks/useGroups";
 import { useToast } from "@/components/ui/use-toast";
 import { GroupInviteModal } from "./GroupInviteModal";
-import { Footer } from "./Footer";
 import { GroupCardSkeleton, LoadingSpinner } from "./SkeletonLoaders";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -70,10 +69,12 @@ export const GroupSelection = ({ onGroupSelect }: GroupSelectionProps) => {
         onGroupSelect(group.id);
       }
     } catch (error) {
-      console.log(error);
       toast({
         title: "Error creating group",
-        description: "An unexpected error occurred. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -120,7 +121,6 @@ export const GroupSelection = ({ onGroupSelect }: GroupSelectionProps) => {
             <p className="text-gray-600">Loading groups...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -295,8 +295,6 @@ export const GroupSelection = ({ onGroupSelect }: GroupSelectionProps) => {
         onInvite={handleInviteUser}
         groupName={selectedGroup?.name || ""}
       />
-
-      <Footer />
     </div>
   );
 };

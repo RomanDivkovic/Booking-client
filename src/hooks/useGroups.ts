@@ -105,11 +105,11 @@ export const useGroups = () => {
         .select(
           `
           *,
-          group:groups(name, description),
-          invited_by_user:profiles!invited_by(full_name, email)
+          group:group_id(name, description),
+          invited_by_user:invited_by(full_name, email)
         `
         )
-        .eq("invited_user_id", user.id)
+        .eq("invited_email", user.email)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
@@ -140,25 +140,33 @@ export const useGroups = () => {
         .single();
 
       // Add creator as first member with admin role
-      const { error: memberError } = await supabase
-        .from("group_members")
-        .insert({
-          group_id: group.id,
-          user_id: user.id,
-          role: "admin"
-        });
+      if (group) {
+        const { error: memberError } = await supabase
+          .from("group_members")
+          .insert({
+            group_id: group.id,
+            user_id: user.id,
+            role: "admin"
+          });
 
-      if (memberError) {
-        // Try to clean up the group if member addition fails
-        await supabase.from("groups").delete().eq("id", group.id);
-        return { error: "Kunde inte lägga till dig som medlem i gruppen" };
+        if (memberError) {
+          // Try to clean up the group if member addition fails
+          await supabase.from("groups").delete().eq("id", group.id);
+          throw new Error("Could not add you as a member of the group");
+        }
+      } else {
+        throw new Error("Failed to create group record.");
       }
 
       await fetchGroups();
       return { group, error: null };
     } catch (error) {
-      console.log(error);
-      return { error: "Ett oväntat fel uppstod vid skapande av gruppen" };
+      console.error("Error in createGroup:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while creating the group";
+      return { error: errorMessage };
     }
   };
 
@@ -185,7 +193,7 @@ export const useGroups = () => {
           .maybeSingle();
 
         if (existingMember) {
-          return { error: "Användaren är redan medlem i gruppen" };
+          return { error: "The user is already a member of the group" };
         }
       }
 
@@ -199,7 +207,7 @@ export const useGroups = () => {
         .maybeSingle();
 
       if (existingInvitation) {
-        return { error: "En inbjudan till denna e-post finns redan" };
+        return { error: "An invitation for this email already exists" };
       }
 
       // Create invitation
@@ -213,7 +221,7 @@ export const useGroups = () => {
         });
 
       if (inviteError) {
-        return { error: "Kunde inte skapa inbjudan" };
+        return { error: "Could not create invitation" };
       }
 
       // If user doesn't exist, we could send an email here
@@ -227,7 +235,7 @@ export const useGroups = () => {
       };
     } catch (error) {
       console.log(error);
-      return { error: "Ett oväntat fel uppstod vid inbjudan" };
+      return { error: "An unexpected error occurred while inviting" };
     }
   };
 
@@ -255,7 +263,7 @@ export const useGroups = () => {
       });
 
       if (!data) {
-        return { error: "Inbjudan kunde inte accepteras" };
+        return { error: "The invitation could not be accepted" };
       }
 
       // Refresh groups and invitations
@@ -265,7 +273,7 @@ export const useGroups = () => {
       return { error: null };
     } catch (error) {
       console.log(error);
-      return { error: "Ett oväntat fel uppstod" };
+      return { error: "An unexpected error occurred" };
     }
   };
 
@@ -278,7 +286,7 @@ export const useGroups = () => {
       });
 
       if (!data) {
-        return { error: "Inbjudan kunde inte avvisas" };
+        return { error: "The invitation could not be declined" };
       }
 
       // Refresh invitations
@@ -287,7 +295,7 @@ export const useGroups = () => {
       return { error: null };
     } catch (error) {
       console.log(error);
-      return { error: "Ett oväntat fel uppstod" };
+      return { error: "An unexpected error occurred" };
     }
   };
 
@@ -315,7 +323,7 @@ export const useGroups = () => {
         const profile = profiles?.find((p) => p.id === member.user_id);
         return {
           id: member.user_id,
-          full_name: profile?.full_name || "Okänd användare",
+          full_name: profile?.full_name || "Unknown user",
           email: profile?.email || "",
           role: member.role
         };

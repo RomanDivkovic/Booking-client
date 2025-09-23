@@ -105,8 +105,8 @@ export const EventDetailModal = ({
       if (error) throw error;
 
       toast({
-        title: "Händelse uppdaterad!",
-        description: "Händelsen har uppdaterats framgångsrikt."
+        title: "Event updated!",
+        description: "The event was updated successfully."
       });
 
       setIsEditing(false);
@@ -114,8 +114,8 @@ export const EventDetailModal = ({
     } catch (error) {
       console.log(error);
       toast({
-        title: "Fel vid uppdatering",
-        description: "Kunde inte uppdatera händelsen. Försök igen.",
+        title: "Error updating event",
+        description: "Could not update the event. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -126,7 +126,7 @@ export const EventDetailModal = ({
   const handleDeleteEvent = async () => {
     if (!event || !user) return;
 
-    if (!window.confirm("Är du säker på att du vill ta bort denna händelse?")) {
+    if (!window.confirm("Are you sure you want to delete this event?")) {
       return;
     }
 
@@ -140,8 +140,8 @@ export const EventDetailModal = ({
       if (error) throw error;
 
       toast({
-        title: "Händelse borttagen!",
-        description: "Händelsen har tagits bort."
+        title: "Event deleted!",
+        description: "The event has been deleted."
       });
 
       onClose();
@@ -150,8 +150,8 @@ export const EventDetailModal = ({
     } catch (error) {
       console.log(error);
       toast({
-        title: "Fel vid borttagning",
-        description: "Kunde inte ta bort händelsen. Försök igen.",
+        title: "Error deleting event",
+        description: "Could not delete the event. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -171,9 +171,7 @@ export const EventDetailModal = ({
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5" />
-              <span>
-                {isEditing ? "Redigera händelse" : "Händelsedetaljer"}
-              </span>
+              <span>{isEditing ? "Redigera event" : "Event details"}</span>
             </div>
             <div className="flex items-center space-x-2">
               {canEdit && !isEditing && (
@@ -212,7 +210,7 @@ export const EventDetailModal = ({
         {isEditing ? (
           <form onSubmit={handleUpdateEvent} className="space-y-4">
             <div>
-              <Label htmlFor="title">Titel *</Label>
+              <Label htmlFor="title">Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
@@ -225,7 +223,7 @@ export const EventDetailModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="date">Datum</Label>
+                <Label htmlFor="date">Date</Label>
                 <Input
                   id="date"
                   type="date"
@@ -237,7 +235,7 @@ export const EventDetailModal = ({
                 />
               </div>
               <div>
-                <Label htmlFor="time">Tid *</Label>
+                <Label htmlFor="time">Time *</Label>
                 <Input
                   id="time"
                   type="time"
@@ -252,7 +250,7 @@ export const EventDetailModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="type">Typ *</Label>
+                <Label htmlFor="type">Type *</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value: "booking" | "task") =>
@@ -263,13 +261,13 @@ export const EventDetailModal = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="booking">📅 Bokning</SelectItem>
-                    <SelectItem value="task">✅ Uppgift</SelectItem>
+                    <SelectItem value="booking">📅 Booking</SelectItem>
+                    <SelectItem value="task">✅ Task</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="assignee">Ansvarig *</Label>
+                <Label htmlFor="assignee">Assignee *</Label>
                 <Select
                   value={formData.assignee}
                   onValueChange={(value) =>
@@ -277,7 +275,7 @@ export const EventDetailModal = ({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj person" />
+                    <SelectValue placeholder="Select person" />
                   </SelectTrigger>
                   <SelectContent>
                     {groupMembers.map((member) => (
@@ -291,7 +289,7 @@ export const EventDetailModal = ({
             </div>
 
             <div>
-              <Label htmlFor="category">Kategori *</Label>
+              <Label htmlFor="category">Category *</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) =>
@@ -299,21 +297,21 @@ export const EventDetailModal = ({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Välj kategori" />
+                  <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Hushåll">🏠 Hushåll</SelectItem>
-                  <SelectItem value="Barn">👶 Barn</SelectItem>
-                  <SelectItem value="Husdjur">🐕 Husdjur</SelectItem>
-                  <SelectItem value="Hälsa">💊 Hälsa</SelectItem>
-                  <SelectItem value="Fritid">🎯 Fritid</SelectItem>
-                  <SelectItem value="Övrigt">📋 Övrigt</SelectItem>
+                  <SelectItem value="Household">🏠 Household</SelectItem>
+                  <SelectItem value="Children">👶 Children</SelectItem>
+                  <SelectItem value="Pets">🐕 Pets</SelectItem>
+                  <SelectItem value="Health">💊 Health</SelectItem>
+                  <SelectItem value="Leisure">🎯 Leisure</SelectItem>
+                  <SelectItem value="Other">📋 Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="description">Beskrivning</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -333,10 +331,10 @@ export const EventDetailModal = ({
                 variant="outline"
                 onClick={() => setIsEditing(false)}
               >
-                Avbryt
+                Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Sparar..." : "Spara ändringar"}
+                {loading ? "Saving..." : "Save changes"}
               </Button>
             </div>
           </form>
@@ -364,7 +362,7 @@ export const EventDetailModal = ({
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  kl. {event.event_time}
+                  at {event.event_time}
                 </span>
               </div>
 
@@ -376,7 +374,7 @@ export const EventDetailModal = ({
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  {event.assignee?.full_name || "Ingen tilldelad"}
+                  {event.assignee?.full_name || "No assignee"}
                 </span>
               </div>
             </div>
@@ -389,7 +387,7 @@ export const EventDetailModal = ({
                     : "bg-green-100 text-green-800"
                 }`}
               >
-                {event.event_type === "booking" ? "📅 Bokning" : "✅ Uppgift"}
+                {event.event_type === "booking" ? "📅 Booking" : "✅ Task"}
               </span>
             </div>
           </div>
