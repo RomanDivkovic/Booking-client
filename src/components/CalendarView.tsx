@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEvents } from "@/hooks/useEvents";
 import { Event } from "@/hooks/useEvents";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -21,27 +20,24 @@ import {
 import { CalendarDaySkeleton } from "./SkeletonLoaders";
 
 interface CalendarViewProps {
-  groupId: string;
   onEventClick?: (event: Event) => void;
   onDateClick?: (date: Date) => void;
   loading?: boolean;
-  optimisticEvents?: Event[];
+  events: Event[];
 }
 
 export const CalendarView = ({
-  groupId,
   onEventClick,
   onDateClick,
   loading: externalLoading = false,
-  optimisticEvents = []
+  events = []
 }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"month" | "week">("month");
 
-  const { events, loading } = useEvents(groupId);
   const isLoading =
-    typeof externalLoading === "boolean" ? externalLoading : loading;
-  const allEvents = [...events, ...optimisticEvents];
+    typeof externalLoading === "boolean" ? externalLoading : false;
+  const allEvents = events;
 
   // Get days based on current view
   const getDaysForView = () => {
@@ -122,7 +118,10 @@ export const CalendarView = ({
     } else {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
       const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+      return `${format(weekStart, "MMM d")} - ${format(
+        weekEnd,
+        "MMM d, yyyy"
+      )}`;
     }
   };
 
@@ -181,7 +180,9 @@ export const CalendarView = ({
         <CardContent className="p-6">
           {/* Day Headers */}
           <div
-            className={`grid gap-1 mb-2 ${view === "month" ? "grid-cols-7" : "grid-cols-7"}`}
+            className={`grid gap-1 mb-2 ${
+              view === "month" ? "grid-cols-7" : "grid-cols-7"
+            }`}
           >
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
               <div
@@ -195,7 +196,9 @@ export const CalendarView = ({
 
           {/* Calendar Days */}
           <div
-            className={`grid gap-1 ${view === "month" ? "grid-cols-7" : "grid-cols-7"}`}
+            className={`grid gap-1 ${
+              view === "month" ? "grid-cols-7" : "grid-cols-7"
+            }`}
           >
             {isLoading
               ? // Show skeleton loaders while loading
@@ -209,17 +212,17 @@ export const CalendarView = ({
                     view === "month" ? isSameMonth(day, currentDate) : true;
                   const isToday = isSameDay(day, new Date());
 
-                  // Check if this day has an optimistic event
-                  const hasOptimistic = dayEvents.some(
-                    (event) => (event as any).optimistic
-                  );
                   return (
                     <div
                       key={index}
                       className={`
                       min-h-[120px] p-2 border rounded-lg cursor-pointer transition-colors
                       ${isCurrentMonth ? "bg-white" : "bg-gray-50"}
-                      ${isToday ? "border-blue-500 bg-blue-50" : "border-gray-200"}
+                      ${
+                        isToday
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200"
+                      }
                       hover:bg-gray-50 hover:border-gray-300
                     `}
                       onClick={() => handleDayClick(day)}
@@ -235,11 +238,6 @@ export const CalendarView = ({
                       </div>
 
                       <div className="space-y-1">
-                        {hasOptimistic && (
-                          <div className="mb-1">
-                            <CalendarDaySkeleton />
-                          </div>
-                        )}
                         {dayEvents.slice(0, 3).map((event) => (
                           <div
                             key={event.id}

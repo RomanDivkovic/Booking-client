@@ -4,132 +4,98 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEvents } from "@/hooks/useEvents";
+import { useGroup } from "@/contexts/GroupContext";
+import { useTodos } from "@/hooks/useTodos";
 import { Plus, Trash2, List, Circle } from "lucide-react";
 import { TodoSkeleton, LoadingSpinner } from "@/components/SkeletonLoaders";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 export default function Todos() {
   const [newTodo, setNewTodo] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
-  const [deletingTodos, setDeletingTodos] = useState<Set<string>>(new Set());
   const { user } = useAuth();
+  const { activeGroup } = useGroup();
   const { toast } = useToast();
   const [todoDate, setTodoDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   );
 
-  // Get the current group ID from localStorage
-  const getCurrentGroupId = () => {
-    return localStorage.getItem("selectedGroupId");
-  };
+  const {
+    todos,
+    isLoading,
+    createTodo,
+    isCreatingTodo,
+    deleteTodo,
+    isDeletingTodo
+  } = useTodos();
 
-  const selectedGroupId = getCurrentGroupId();
-  const { events, loading, createEvent, refetch } = useEvents(selectedGroupId);
-
-  const addTodo = async (e: React.FormEvent) => {
+  const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTodo.trim() || !selectedGroupId || !user) return;
+    if (!newTodo.trim() || !activeGroup?.id || !user) return;
 
-    setIsAdding(true);
+    const todoData = {
+      title: newTodo.trim(),
+      event_date: todoDate,
+      assignee_id: user.id,
+      group_id: activeGroup.id
+    };
 
     try {
-      const todoData = {
-        title: newTodo.trim(),
-        description: "",
-        event_date: todoDate,
-        event_time: "12:00",
-        event_type: "task" as const,
-        assignee_id: user.id,
-        category: "General"
-      };
-
-      const { error } = await createEvent(todoData);
-      await refetch();
-
-      if (error) {
-        throw error;
-      }
-
+      await createTodo(todoData);
       setNewTodo("");
       setTodoDate(format(new Date(), "yyyy-MM-dd"));
-
       toast({
         title: "Todo added!",
         description: "Your todo has been added successfully."
       });
-    } catch {
+    } catch (error: unknown) {
+      console.log(error);
       toast({
         title: "Error adding todo",
         description: "Could not add your todo. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      setIsAdding(false);
     }
   };
 
-  const toggleTodo = async (todoId: string, completed: boolean) => {
-    try {
-      // For now, we'll just delete the todo when marked as completed
-      // In a real implementation, you'd update a completed field
-      if (completed) {
-        const { error } = await supabase
-          .from("events")
-          .delete()
-          .eq("id", todoId);
-
-        if (error) throw error;
-
+  const handleToggleTodo = async (todoId: string, completed: boolean) => {
+    if (completed) {
+      try {
+        await deleteTodo(todoId);
         toast({
           title: "Todo completed!",
           description: "Great job!"
         });
+      } catch (error: unknown) {
+        console.log(error);
+        toast({
+          title: "Error completing todo",
+          description: "Could not update your todo. Please try again.",
+          variant: "destructive"
+        });
       }
-    } catch {
-      toast({
-        title: "Error updating todo",
-        description: "Could not update your todo. Please try again.",
-        variant: "destructive"
-      });
     }
   };
 
-  const deleteTodo = async (todoId: string) => {
-    setDeletingTodos((prev) => new Set(prev).add(todoId));
-
+  const handleDeleteTodo = async (todoId: string) => {
     try {
-      const { error } = await supabase.from("events").delete().eq("id", todoId);
-      await refetch();
-
-      if (error) throw error;
-
+      await deleteTodo(todoId);
       toast({
         title: "Todo deleted!",
         description: "Your todo has been removed."
       });
-    } catch {
+    } catch (error: unknown) {
+      console.log(error);
       toast({
         title: "Error deleting todo",
         description: "Could not delete your todo. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      setDeletingTodos((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(todoId);
-        return newSet;
-      });
     }
   };
 
-  // Filter tasks from events
-  const todos = events.filter((event) => event.event_type === "task");
-
-  if (!selectedGroupId) {
+  if (!activeGroup) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
         <div className="flex-1 flex items-center justify-center">
@@ -168,29 +134,29 @@ export default function Todos() {
               </CardHeader>
               <CardContent>
                 <form
-                  onSubmit={addTodo}
+                  onSubmit={handleAddTodo}
                   className="flex flex-col sm:flex-row gap-3 w-full"
                 >
                   <Input
                     value={newTodo}
                     onChange={(e) => setNewTodo(e.target.value)}
                     placeholder="What needs to be done?"
-                    disabled={isAdding}
+                    disabled={isCreatingTodo}
                     className="flex-1 min-w-0"
                   />
                   <Input
                     type="date"
                     value={todoDate}
                     onChange={(e) => setTodoDate(e.target.value)}
-                    disabled={isAdding}
+                    disabled={isCreatingTodo}
                     className="w-full sm:w-48"
                   />
                   <Button
                     type="submit"
-                    disabled={isAdding || !newTodo.trim()}
+                    disabled={isCreatingTodo || !newTodo.trim()}
                     className="w-full sm:w-auto"
                   >
-                    {isAdding ? (
+                    {isCreatingTodo ? (
                       <div className="flex items-center space-x-2">
                         <LoadingSpinner size="small" />
                         <span>Adding...</span>
@@ -208,8 +174,7 @@ export default function Todos() {
 
             {/* Todos List */}
             <div className="space-y-6">
-              {loading || isAdding || deletingTodos.size > 0 ? (
-                // Show skeleton loaders while loading or adding
+              {isLoading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <TodoSkeleton key={i} />
@@ -241,7 +206,7 @@ export default function Todos() {
                         >
                           <Checkbox
                             onCheckedChange={(checked) =>
-                              toggleTodo(todo.id, checked as boolean)
+                              handleToggleTodo(todo.id, checked as boolean)
                             }
                             className="flex-shrink-0"
                           />
@@ -251,11 +216,11 @@ export default function Todos() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteTodo(todo.id)}
-                            disabled={deletingTodos.has(todo.id)}
+                            onClick={() => handleDeleteTodo(todo.id)}
+                            disabled={isDeletingTodo}
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
-                            {deletingTodos.has(todo.id) ? (
+                            {isDeletingTodo ? (
                               <LoadingSpinner size="small" />
                             ) : (
                               <Trash2 className="w-4 h-4" />

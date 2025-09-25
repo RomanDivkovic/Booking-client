@@ -7,55 +7,40 @@ import { Sidebar } from "@/components/Sidebar";
 import { HouseholdStats } from "@/components/HouseholdStats";
 import { GroupSelection } from "@/components/GroupSelection";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGroup } from "@/contexts/GroupContext";
 import { useEvents } from "@/hooks/useEvents";
 import { useGroups } from "@/hooks/useGroups";
 import { LoadingSpinner } from "@/components/SkeletonLoaders";
 import { GroupInviteModal } from "@/components/GroupInviteModal";
 import { supabase } from "@/integrations/supabase/client";
-1;
+
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
-  const { groups, loading: groupsLoading } = useGroups();
+  const { groups, loading: groupsLoading, inviteUserToGroup } = useGroups();
+  const { activeGroup } = useGroup();
   const navigate = useNavigate();
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+  // State for modals and UI interaction
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
-  const [optimisticEvents, setOptimisticEvents] = useState<any[]>([]);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [inviteGroupName, setInviteGroupName] = useState("");
-  const { inviteUserToGroup } = useGroups();
 
+  // Use the refactored useEvents hook
   const {
     events,
-    loading: eventsLoading,
+    isLoading: eventsLoading,
     createEvent,
     refetch
-  } = useEvents(selectedGroupId);
+  } = useEvents();
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    // Get selected group from localStorage or use first available group
-    const storedGroupId = localStorage.getItem("selectedGroupId");
-    if (storedGroupId && groups.some((g) => g.id === storedGroupId)) {
-      setSelectedGroupId(storedGroupId);
-    } else if (groups.length > 0) {
-      setSelectedGroupId(groups[0].id);
-      localStorage.setItem("selectedGroupId", groups[0].id);
-    }
-  }, [groups]);
-
-  const handleGroupSelect = (groupId: string) => {
-    setSelectedGroupId(groupId);
-    localStorage.setItem("selectedGroupId", groupId);
-  };
 
   const handleAddEvent = async (eventData: {
     title: string;
@@ -66,38 +51,31 @@ const Index = () => {
     description: string;
     category: string;
   }) => {
+    if (!activeGroup?.id) {
+      console.error("No active group selected to add an event to.");
+      return;
+    }
     setIsAddingEvent(true);
-    // Create a temporary optimistic event
-    const optimisticEvent = {
-      id: `optimistic-${Date.now()}`,
-      title: eventData.title,
-      description: eventData.description,
-      event_date: eventData.date.toISOString(),
-      event_time: eventData.time,
-      event_type: eventData.type,
-      category: eventData.category,
-      assignee_id: eventData.assignee,
-      created_by: user?.id,
-      group_id: selectedGroupId,
-      assignee: undefined,
-      optimistic: true
-    };
-    setOptimisticEvents((prev) => [...prev, optimisticEvent]);
-    const { error } = await createEvent({
-      title: eventData.title,
-      description: eventData.description,
-      event_date: eventData.date.toISOString(),
-      event_time: eventData.time,
-      event_type: eventData.type,
-      category: eventData.category,
-      assignee_id: eventData.assignee
-    });
-    await refetch();
-    setIsAddingEvent(false);
-    setOptimisticEvents([]); // Clear optimistic events after refetch
-    if (!error) {
+
+    try {
+      await createEvent({
+        title: eventData.title,
+        description: eventData.description,
+        event_date: eventData.date.toISOString(),
+        event_time: eventData.time,
+        event_type: eventData.type,
+        category: eventData.category,
+        assignee_id: eventData.assignee,
+        group_id: activeGroup.id // Use active group from context
+      });
+      // No need to manually refetch, react-query handles it on success
       setIsModalOpen(false);
-      window.location.reload();
+    } catch (error: unknown) {
+      // No need to console.error here, react-query can handle errors globally
+      // You might want to log to a service like Sentry here
+      console.log(error);
+    } finally {
+      setIsAddingEvent(false);
     }
   };
 
@@ -105,7 +83,7 @@ const Index = () => {
     refetch();
   };
 
-  if (authLoading) {
+  if (authLoading || groupsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
         <div className="text-center">
@@ -117,46 +95,15 @@ const Index = () => {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <LoadingSpinner size="large" />
-            <p className="text-gray-600 mt-4">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (groupsLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <LoadingSpinner size="large" />
-            <p className="text-gray-600 mt-4">Loading your groups...</p>
-          </div>
-        </div>
-      </div>
-    );
+    // This case is handled by the useEffect redirect, but it's good practice
+    // to have a conditional return.
+    return null;
   }
 
   if (groups.length === 0) {
-    return <GroupSelection onGroupSelect={handleGroupSelect} />;
-  }
-
-  if (!selectedGroupId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <LoadingSpinner size="large" />
-            <p className="text-gray-600 mt-4">Selecting group...</p>
-          </div>
-        </div>
-      </div>
-    );
+    // The GroupSelection component now likely needs to create a group
+    // and then the useGroups hook will update, causing a re-render.
+    return <GroupSelection />;
   }
 
   return (
@@ -167,12 +114,7 @@ const Index = () => {
             <HouseholdStats events={events} />
             <Sidebar
               onAddClick={() => setIsModalOpen(true)}
-              onInviteClick={() => {
-                setInviteGroupName(
-                  groups.find((g) => g.id === selectedGroupId)?.name || ""
-                );
-                setIsInviteModalOpen(true);
-              }}
+              onInviteClick={() => setIsInviteModalOpen(true)}
             />
           </div>
 
@@ -186,7 +128,7 @@ const Index = () => {
               </div>
             ) : (
               <CalendarView
-                groupId={selectedGroupId}
+                // No longer needs groupId
                 onEventClick={(event) => {
                   setSelectedEvent(event);
                   setIsDetailModalOpen(true);
@@ -196,7 +138,7 @@ const Index = () => {
                   setIsModalOpen(true);
                 }}
                 loading={eventsLoading || isAddingEvent}
-                optimisticEvents={optimisticEvents}
+                events={events} // Pass events directly
               />
             )}
           </div>
@@ -210,7 +152,7 @@ const Index = () => {
           setSelectedDate(null);
         }}
         onSubmit={handleAddEvent}
-        groupId={selectedGroupId}
+        groupId={activeGroup?.id ?? ""} // Pass active group ID
         selectedDate={selectedDate}
       />
 
@@ -225,14 +167,14 @@ const Index = () => {
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         onInvite={async (email) => {
-          if (!selectedGroupId) return { error: "No group selected" };
-          const result = await inviteUserToGroup(selectedGroupId, email);
+          if (!activeGroup?.id) return { error: "No group selected" };
+          const result = await inviteUserToGroup(activeGroup.id, email);
           // Hämta invitationId för länk
           if (!result.error) {
             const { data: invitations } = await supabase
               .from("group_invitations")
               .select("id")
-              .eq("group_id", selectedGroupId)
+              .eq("group_id", activeGroup.id)
               .eq("invited_email", email.toLowerCase().trim())
               .eq("status", "pending")
               .order("created_at", { ascending: false })
@@ -243,7 +185,7 @@ const Index = () => {
           }
           return result;
         }}
-        groupName={inviteGroupName}
+        groupName={activeGroup?.name ?? ""}
       />
     </div>
   );

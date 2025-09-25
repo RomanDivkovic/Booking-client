@@ -334,6 +334,36 @@ export const useGroups = () => {
     }
   };
 
+  const deleteGroup = async (groupId: string) => {
+    if (!user) return { error: "Not authenticated" };
+
+    try {
+      // Use RPC function to delete group
+      const { data, error } = await supabase.rpc("delete_group", {
+        group_id: groupId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        return { error: "Failed to delete group" };
+      }
+
+      // Refresh the groups list
+      await fetchGroups();
+
+      return { error: null };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while deleting the group.";
+      return { error: errorMessage };
+    }
+  };
+
   return {
     groups,
     invitations,
@@ -343,6 +373,7 @@ export const useGroups = () => {
     acceptInvitation,
     declineInvitation,
     getGroupMembers,
+    deleteGroup,
     refetch: fetchGroups,
     refetchInvitations: fetchInvitations
   };
