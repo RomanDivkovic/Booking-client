@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -85,8 +85,12 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Calendar className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 overflow-hidden">
+            <img
+              src="./assets/final_circular_transparent_icon.webp"
+              alt="FamCaly Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Welcome to FamCaly
@@ -225,32 +229,13 @@ export default function Auth() {
             {!isLogin && (
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <div className="text-center text-sm text-gray-600 mt-4">
-                  By signing up, you agree to our{" "}
-                  <a
-                    href="/tos"
-                    className="link-hover-animation-colored underline hover:text-blue-900"
-                  >
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="/privacy"
-                    className="link-hover-animation-colored underline hover:text-blue-900"
-                  >
-                    Privacy Policy
-                  </a>
+                  By signing up, you agree to our Terms of Service and Privacy
+                  Policy.
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-gray-500 text-sm">
-            © 2024 FamiljKal. All rights reserved.
-          </p>
-        </div>
       </div>
     </div>
   );

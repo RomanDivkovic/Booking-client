@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -96,8 +96,12 @@ export const Header = () => {
                 to="/"
                 className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               >
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center overflow-hidden">
+                  <img
+                    src="/web-app-manifest-192x192.png"
+                    alt="FamCaly Logo"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <span className="text-xl font-bold text-gray-900">FamCaly</span>
               </Link>

@@ -1,134 +1,137 @@
-import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGroup } from "@/contexts/GroupContext";
+import { useEffect } from "react";
+import { useGroups } from "./useGroups";
 
 export interface Event {
   id: string;
+  created_at: string;
   title: string;
-  description: string | null;
+  description?: string;
   event_date: string;
-  event_time: string;
+  event_time?: string;
   event_type: "booking" | "task";
-  category: string;
-  assignee_id: string | null;
   created_by: string;
+  assignee_id?: string;
   group_id: string;
+  category?: string;
   assignee?: {
     full_name: string;
     email: string;
   };
 }
 
-export const useEvents = (groupId: string | null) => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+const fetchEvents = async (
+  userId: string | undefined,
+  activeGroupId: string | null,
+  allGroupIds: string[]
+) => {
+  if (!userId) return [];
+
+  // This join assumes you have a 'profiles' table with 'id' and 'full_name'
+  let query = supabase.from("events").select(`
+    *,
+    assignee:profiles (
+      id,
+      full_name
+    )
+  `);
+
+  if (activeGroupId) {
+    // Fetch events for the single active group
+    query = query.eq("group_id", activeGroupId);
+  } else {
+    // Fetch events for all groups the user is a member of (Personal Overview)
+    if (allGroupIds.length === 0) return []; // No groups to fetch from
+    query = query.in("group_id", allGroupIds);
+  }
+
+  const { data, error } = await query.order("event_date", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data || []).map((event) => ({
+    ...event,
+    event_type: event.event_type as "booking" | "task"
+  }));
+};
+
+export const useEvents = () => {
   const { user } = useAuth();
+  const { activeGroup } = useGroup();
+  const { groups } = useGroups(); // Get all groups the user is part of
+  const queryClient = useQueryClient();
 
-  const fetchEvents = async () => {
-    if (!user || !groupId) return;
+  const allGroupIds = groups?.map((g) => g.id) || [];
 
-    try {
-      // First fetch events without the profile join
-      const { data: eventsData, error: eventsError } = await supabase
-        .from("events")
-        .select("*")
-        .eq("group_id", groupId)
-        .order("event_date", { ascending: true });
+  const {
+    data: events,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery<Event[]>({
+    // The query key now depends on the active group, so it refetches on change
+    queryKey: ["events", activeGroup?.id ?? "personal-overview", user?.id],
+    queryFn: () => fetchEvents(user?.id, activeGroup?.id ?? null, allGroupIds),
+    enabled: !!user && (!!activeGroup || allGroupIds.length > 0)
+  });
 
-      if (eventsError) throw eventsError;
+  const createEventMutation = useMutation({
+    mutationFn: async (
+      eventData: Omit<Event, "id" | "created_by" | "assignee" | "created_at">
+    ) => {
+      if (!user) throw new Error("Not authenticated");
+      if (!eventData.group_id)
+        throw new Error("Group ID is required to create an event");
 
-      // Then fetch profiles separately for assignees
-      const assigneeIds =
-        eventsData?.filter((e) => e.assignee_id).map((e) => e.assignee_id) ||
-        [];
-      let profiles: any[] = [];
-
-      if (assigneeIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .in("id", assigneeIds);
-
-        if (!profilesError) {
-          profiles = profilesData || [];
-        }
-      }
-
-      // Combine events with profile data
-      const typedEvents: Event[] = (eventsData || []).map((event) => ({
-        ...event,
-        event_type: event.event_type as "booking" | "task",
-        assignee: profiles.find((p) => p.id === event.assignee_id)
-      }));
-
-      setEvents(typedEvents);
-    } catch (error) {
-      console.log(error);
-      // Remove: console.error("Error fetching events:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-
-    // Set up real-time subscription for live updates
-    if (groupId) {
-      const subscription = supabase
-        .channel(`events-${groupId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "events",
-            filter: `group_id=eq.${groupId}`
-          },
-          () => {
-            // Refresh events when changes occur
-            fetchEvents();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-  }, [user, groupId]);
-
-  const createEvent = async (
-    eventData: Omit<Event, "id" | "created_by" | "group_id" | "assignee">
-  ) => {
-    if (!user || !groupId)
-      return { error: "Not authenticated or no group selected" };
-
-    try {
       const { data, error } = await supabase
         .from("events")
         .insert({
           ...eventData,
-          group_id: groupId,
           created_by: user.id
         })
         .select()
         .single();
 
       if (error) throw error;
-
-      // No need to manually fetchEvents() here as real-time subscription will handle it
-      return { data, error: null };
-    } catch (error) {
-      // Remove: console.error("Error creating event:", error);
-      return { error };
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate the events query to refetch data
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     }
-  };
+  });
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("events-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        () => {
+          // Invalidate query to trigger a refetch
+          queryClient.invalidateQueries({ queryKey: ["events"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   return {
-    events,
-    loading,
-    createEvent,
-    refetch: fetchEvents
+    events: events || [],
+    isLoading,
+    isError,
+    createEvent: createEventMutation.mutateAsync,
+    refetch
   };
 };
