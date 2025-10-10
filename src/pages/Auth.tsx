@@ -87,7 +87,7 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 overflow-hidden">
             <img
-              src="./assets/final_circular_transparent_icon.webp"
+              src="/final_circular_transparent_icon.webp"
               alt="FamCaly Logo"
               className="w-full h-full object-cover"
             />
