@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGroup } from "@/contexts/GroupContext";
-import { useGroups } from "./useGroups";
 import { useEffect } from "react";
 import { Event } from "./useEvents"; // Re-use the Event type
 
@@ -11,8 +10,7 @@ export type Todo = Event;
 
 const fetchTodos = async (
   userId: string | undefined,
-  activeGroupId: string | null,
-  allGroupIds: string[]
+  activeGroupId: string | null
 ): Promise<Todo[]> => {
   if (!userId) return [];
 
@@ -31,9 +29,19 @@ const fetchTodos = async (
     // Fetch todos for the single active group
     query = query.eq("group_id", activeGroupId);
   } else {
-    // Fetch todos for all groups the user is a member of (Personal Overview)
-    if (allGroupIds.length === 0) return []; // No groups to fetch from
-    query = query.in("group_id", allGroupIds);
+    // Fetch todos for all groups the user can access (created or member of)
+    // Use the database function to get all accessible groups
+    const { data: accessibleGroups } = await supabase.rpc("get_group_events", {
+      user_id: userId
+    });
+
+    if (!accessibleGroups || accessibleGroups.length === 0) return [];
+
+    // Extract unique group IDs
+    const groupIds = [
+      ...new Set(accessibleGroups.map((event: any) => event.group_id))
+    ];
+    query = query.in("group_id", groupIds);
   }
 
   const { data, error } = await query.order("created_at", { ascending: false });
@@ -48,10 +56,7 @@ const fetchTodos = async (
 export const useTodos = () => {
   const { user } = useAuth();
   const { activeGroup } = useGroup();
-  const { groups } = useGroups();
   const queryClient = useQueryClient();
-
-  const allGroupIds = groups?.map((g) => g.id) || [];
 
   const {
     data: todos,
@@ -59,8 +64,8 @@ export const useTodos = () => {
     isError
   } = useQuery<Todo[]>({
     queryKey: ["todos", activeGroup?.id ?? "personal-overview", user?.id],
-    queryFn: () => fetchTodos(user?.id, activeGroup?.id ?? null, allGroupIds),
-    enabled: !!user && (!!activeGroup || allGroupIds.length > 0)
+    queryFn: () => fetchTodos(user?.id, activeGroup?.id ?? null),
+    enabled: !!user
   });
 
   const createTodoMutation = useMutation({
