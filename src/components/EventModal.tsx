@@ -20,6 +20,7 @@ import {
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { useGroups } from "@/hooks/useGroups";
+// import { useGroup } from "@/contexts/GroupContext";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ interface EventModalProps {
     assignee: string;
     description: string;
     category: string;
+    groupId?: string; // Add optional groupId for personal overview
   }) => void;
   selectedDate: Date | null;
   groupId: string | null;
@@ -51,12 +53,13 @@ export const EventModal = ({
     type: "booking" as "booking" | "task",
     assignee: "",
     description: "",
-    category: ""
+    category: "",
+    selectedGroupId: groupId || "" // Add selected group for personal overview
   });
   const [groupMembers, setGroupMembers] = useState<
     Array<{ id: string; full_name: string; email: string }>
   >([]);
-  const { getGroupMembers } = useGroups();
+  const { getGroupMembers, groups } = useGroups();
 
   useEffect(() => {
     if (selectedDate) {
@@ -65,24 +68,39 @@ export const EventModal = ({
   }, [selectedDate]);
 
   useEffect(() => {
-    if (isOpen && groupId) {
+    if (isOpen) {
+      // Reset selectedGroupId when modal opens
+      setFormData((prev) => ({ ...prev, selectedGroupId: groupId || "" }));
+    }
+  }, [isOpen, groupId]);
+
+  useEffect(() => {
+    const currentGroupId = formData.selectedGroupId || groupId;
+    if (isOpen && currentGroupId) {
       const fetchMembers = async () => {
-        const members = await getGroupMembers(groupId);
+        const members = await getGroupMembers(currentGroupId);
         setGroupMembers(members);
       };
       fetchMembers();
+    } else {
+      setGroupMembers([]);
     }
-  }, [isOpen, groupId, getGroupMembers]);
+  }, [isOpen, formData.selectedGroupId, groupId, getGroupMembers]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const currentGroupId = formData.selectedGroupId || groupId;
     if (
       formData.title &&
       formData.time &&
       formData.assignee &&
-      formData.category
+      formData.category &&
+      currentGroupId
     ) {
-      onSubmit(formData);
+      onSubmit({
+        ...formData,
+        groupId: currentGroupId
+      });
       setFormData({
         title: "",
         date: new Date(),
@@ -90,7 +108,8 @@ export const EventModal = ({
         type: "booking",
         assignee: "",
         description: "",
-        category: ""
+        category: "",
+        selectedGroupId: groupId || ""
       });
     }
   };
@@ -104,7 +123,8 @@ export const EventModal = ({
       type: "booking",
       assignee: "",
       description: "",
-      category: ""
+      category: "",
+      selectedGroupId: groupId || ""
     });
   };
 
@@ -131,6 +151,29 @@ export const EventModal = ({
               required
             />
           </div>
+
+          {!groupId && (
+            <div>
+              <Label htmlFor="group">Group *</Label>
+              <Select
+                value={formData.selectedGroupId}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, selectedGroupId: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      🏠 {group.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -244,7 +287,18 @@ export const EventModal = ({
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit">Add event</Button>
+            <Button
+              type="submit"
+              disabled={
+                !formData.title ||
+                !formData.time ||
+                !formData.assignee ||
+                !formData.category ||
+                (!groupId && !formData.selectedGroupId)
+              }
+            >
+              Add event
+            </Button>
           </div>
         </form>
       </DialogContent>

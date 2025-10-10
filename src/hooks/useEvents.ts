@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGroup } from "@/contexts/GroupContext";
 import { useEffect } from "react";
-import { useGroups } from "./useGroups";
 
 export interface Event {
   id: string;
@@ -23,50 +22,84 @@ export interface Event {
   };
 }
 
+interface RawEventData {
+  id: string;
+  created_at: string;
+  title: string;
+  description?: string;
+  event_date: string;
+  event_time?: string;
+  event_type: string;
+  created_by: string;
+  assignee_id?: string;
+  group_id: string;
+  category?: string;
+  assignee?: {
+    id: string;
+    full_name: string;
+    email: string;
+  }[];
+}
+
 const fetchEvents = async (
   userId: string | undefined,
-  activeGroupId: string | null,
-  allGroupIds: string[]
+  activeGroupId: string | null
 ) => {
-  if (!userId) return [];
-
-  // This join assumes you have a 'profiles' table with 'id' and 'full_name'
-  let query = supabase.from("events").select(`
-    *,
-    assignee:profiles (
-      id,
-      full_name
-    )
-  `);
-
-  if (activeGroupId) {
-    // Fetch events for the single active group
-    query = query.eq("group_id", activeGroupId);
-  } else {
-    // Fetch events for all groups the user is a member of (Personal Overview)
-    if (allGroupIds.length === 0) return []; // No groups to fetch from
-    query = query.in("group_id", allGroupIds);
+  if (!userId) {
+    return [];
   }
 
-  const { data, error } = await query.order("event_date", { ascending: true });
+  try {
+    // Get all events the user can access (RLS will filter appropriately)
+    const { data, error } = await supabase.from("events").select(`
+        id,
+        created_at,
+        title,
+        description,
+        event_date,
+        event_time,
+        event_type,
+        created_by,
+        assignee_id,
+        group_id,
+        category,
+        assignee:profiles!events_assignee_id_fkey(id, full_name, email)
+      `);
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Filter by active group if specified
+    let filteredData = data || [];
+    if (activeGroupId) {
+      filteredData = filteredData.filter(
+        (event: { group_id: string }) => event.group_id === activeGroupId
+      );
+    }
+
+    return filteredData.map(
+      (event: RawEventData): Event => ({
+        ...event,
+        event_type: event.event_type as "booking" | "task",
+        assignee:
+          event.assignee && event.assignee.length > 0
+            ? {
+                full_name: event.assignee[0].full_name,
+                email: event.assignee[0].email
+              }
+            : undefined
+      })
+    );
+  } catch {
+    return [];
   }
-
-  return (data || []).map((event) => ({
-    ...event,
-    event_type: event.event_type as "booking" | "task"
-  }));
 };
 
 export const useEvents = () => {
   const { user } = useAuth();
   const { activeGroup } = useGroup();
-  const { groups } = useGroups(); // Get all groups the user is part of
   const queryClient = useQueryClient();
-
-  const allGroupIds = groups?.map((g) => g.id) || [];
 
   const {
     data: events,
@@ -76,8 +109,8 @@ export const useEvents = () => {
   } = useQuery<Event[]>({
     // The query key now depends on the active group, so it refetches on change
     queryKey: ["events", activeGroup?.id ?? "personal-overview", user?.id],
-    queryFn: () => fetchEvents(user?.id, activeGroup?.id ?? null, allGroupIds),
-    enabled: !!user && (!!activeGroup || allGroupIds.length > 0)
+    queryFn: () => fetchEvents(user?.id, activeGroup?.id ?? null),
+    enabled: !!user // Simplified: just check if user exists, don't require groups
   });
 
   const createEventMutation = useMutation({
