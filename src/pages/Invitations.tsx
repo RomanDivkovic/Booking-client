@@ -3,13 +3,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useGroups } from "@/hooks/useGroups";
+import { useGroupInvitations } from "@/hooks/useGroupInvitations";
 import { Mail, Check, X, Users, Calendar } from "lucide-react";
 import { LoadingSpinner } from "@/components/SkeletonLoaders";
 
 export default function Invitations() {
   const { invitations, loading, acceptInvitation, declineInvitation } =
-    useGroups();
+    useGroupInvitations();
   const { toast } = useToast();
   const [processingInvitation, setProcessingInvitation] = useState<
     string | null

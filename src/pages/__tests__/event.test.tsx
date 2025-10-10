@@ -23,6 +23,12 @@ jest.mock("@/hooks/useEvents", () => ({
 
 jest.mock("@/hooks/useGroups", () => ({
   useGroups: () => ({
+    groups: []
+  })
+}));
+
+jest.mock("@/hooks/useGroupMembers", () => ({
+  useGroupMembers: () => ({
     getGroupMembers: jest.fn(() => [
       { id: "1", full_name: "John Doe", email: "john@example.com" }
     ])

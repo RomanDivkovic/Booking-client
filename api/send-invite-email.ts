@@ -12,6 +12,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!apiKey) return res.status(500).json({ error: "Resend config missing" });
 
   try {
+    console.log("Attempting to send email:", { to, inviteLink, groupName });
+
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -32,11 +34,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!resendRes.ok) {
       const text = await resendRes.text();
+      console.error("Resend API error:", text);
       return res.status(500).json({ error: "Resend error", details: text });
     }
 
+    const responseData = await resendRes.json();
+    console.log("Email sent successfully:", responseData);
     res.status(200).json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Email sending failed:", error);
     res.status(500).json({ error: "Kunde inte skicka e-post" });
   }
 }

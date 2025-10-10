@@ -1,41 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Group } from "@/types/group";
 
-export interface Group {
-  id: string;
-  name: string;
-  description: string | null;
-  created_by: string;
-  created_at: string;
-  member_count?: number;
-}
-
-export interface GroupInvitation {
-  id: string;
-  group_id: string;
-  invited_user_id: string;
-  invited_by: string;
-  status: "pending" | "accepted" | "declined";
-  created_at: string;
-  updated_at: string;
-  group?: {
-    name: string;
-    description: string | null;
-  };
-  invited_by_user?: {
-    full_name: string;
-    email: string;
-  };
-}
-
+/**
+ * Hook for managing groups (CRUD operations)
+ */
 export const useGroups = () => {
   const [groups, setGroups] = useState<Group[]>([]);
-  const [invitations, setInvitations] = useState<GroupInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     if (!user) {
       setGroups([]);
       setLoading(false);
@@ -85,45 +61,16 @@ export const useGroups = () => {
       );
 
       setGroups(groupsWithMemberCount);
-    } catch (error) {
-      console.log(error);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchInvitations = async () => {
-    if (!user) {
-      setInvitations([]);
-      return;
-    }
-
-    try {
-      const { data: invitationsData } = await supabase
-        .from("group_invitations")
-        .select(
-          `
-          *,
-          group:group_id(name, description),
-          invited_by_user:invited_by(full_name, email)
-        `
-        )
-        .eq("invited_email", user.email)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
-
-      setInvitations(invitationsData || []);
-    } catch (error) {
-      console.log(error);
-      setInvitations([]);
-    }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchGroups();
-    fetchInvitations();
-  }, [user]);
+  }, [fetchGroups]);
 
   const createGroup = async (name: string, description?: string) => {
     if (!user) return { error: "Not authenticated" };
@@ -192,175 +139,6 @@ export const useGroups = () => {
     }
   };
 
-  const inviteUserToGroup = async (groupId: string, email: string) => {
-    if (!user) return { error: "Not authenticated" };
-
-    try {
-      const emailLower = email.toLowerCase().trim();
-
-      // Check if user exists in profiles
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .eq("email", emailLower)
-        .maybeSingle();
-
-      // Check if user is already a member
-      if (profile) {
-        const { data: existingMember } = await supabase
-          .from("group_members")
-          .select("id")
-          .eq("group_id", groupId)
-          .eq("user_id", profile.id)
-          .maybeSingle();
-
-        if (existingMember) {
-          return { error: "The user is already a member of the group" };
-        }
-      }
-
-      // Check if there's already a pending invitation for this email
-      const { data: existingInvitation } = await supabase
-        .from("group_invitations")
-        .select("id")
-        .eq("group_id", groupId)
-        .eq("invited_email", emailLower)
-        .eq("status", "pending")
-        .maybeSingle();
-
-      if (existingInvitation) {
-        return { error: "An invitation for this email already exists" };
-      }
-
-      // Create invitation
-      const { data: invitation, error: inviteError } = await supabase
-        .from("group_invitations")
-        .insert({
-          group_id: groupId,
-          invited_user_id: profile?.id || null,
-          invited_email: emailLower,
-          invited_by: user.id
-        })
-        .select()
-        .single();
-
-      if (inviteError) {
-        return { error: "Could not create invitation" };
-      }
-
-      // If user doesn't exist, we could send an email here
-      // For now, just return success
-      return {
-        error: null,
-        userExists: !!profile,
-        invitationId: invitation?.id,
-        message: profile
-          ? "Inbjudan skickad till befintlig användare"
-          : "Inbjudan skapad för ny användare"
-      };
-    } catch {
-      return { error: "An unexpected error occurred while inviting" };
-    }
-  };
-
-  // const generateInvitationLink = (groupId: string, invitationId: string) => {
-  //   const baseUrl = window.location.origin;
-  //   return `${baseUrl}/auth?invite=${invitationId}`;
-  // };
-
-  // const copyInvitationLink = async (groupId: string, invitationId: string) => {
-  //   const link = generateInvitationLink(groupId, invitationId);
-  //   try {
-  //     await navigator.clipboard.writeText(link);
-  //     return { success: true, link };
-  //   } catch (error) {
-  //     return { success: false, error: "Kunde inte kopiera länken" };
-  //   }
-  // };
-
-  const acceptInvitation = async (invitationId: string) => {
-    if (!user) return { error: "Not authenticated" };
-
-    try {
-      const { data } = await supabase.rpc("accept_group_invitation", {
-        invitation_id: invitationId
-      });
-
-      if (!data) {
-        return { error: "The invitation could not be accepted" };
-      }
-
-      // Refresh groups and invitations
-      await fetchGroups();
-      await fetchInvitations();
-
-      return { error: null };
-    } catch (error) {
-      console.log(error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
-
-  const declineInvitation = async (invitationId: string) => {
-    if (!user) return { error: "Not authenticated" };
-
-    try {
-      const { data } = await supabase.rpc("decline_group_invitation", {
-        invitation_id: invitationId
-      });
-
-      if (!data) {
-        return { error: "The invitation could not be declined" };
-      }
-
-      // Refresh invitations
-      await fetchInvitations();
-
-      return { error: null };
-    } catch (error) {
-      console.log(error);
-      return { error: "An unexpected error occurred" };
-    }
-  };
-
-  const getGroupMembers = useCallback(
-    async (groupId: string) => {
-      if (!user) return [];
-
-      try {
-        // First get member IDs
-        const { data: members } = await supabase
-          .from("group_members")
-          .select("user_id, role")
-          .eq("group_id", groupId);
-
-        if (!members || members.length === 0) return [];
-
-        // Then get profile data for each member
-        const userIds = members.map((m) => m.user_id);
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .in("id", userIds);
-
-        // Combine member data with profile data
-        return members.map((member) => {
-          const profile = profiles?.find((p) => p.id === member.user_id);
-          return {
-            id: member.user_id,
-            full_name: profile?.full_name || "Unknown user",
-            email: profile?.email || "",
-            role: member.role
-          };
-        });
-      } catch (error) {
-        console.log(error);
-        return [];
-      }
-    },
-    [user]
-  );
-
   const deleteGroup = async (groupId: string) => {
     if (!user) return { error: "Not authenticated" };
 
@@ -393,15 +171,9 @@ export const useGroups = () => {
 
   return {
     groups,
-    invitations,
     loading,
     createGroup,
-    inviteUserToGroup,
-    acceptInvitation,
-    declineInvitation,
-    getGroupMembers,
     deleteGroup,
-    refetch: fetchGroups,
-    refetchInvitations: fetchInvitations
+    refetch: fetchGroups
   };
 };
