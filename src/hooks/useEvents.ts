@@ -139,7 +139,31 @@ export const useEvents = () => {
     }
   });
 
-  // Real-time subscription
+  const updateEventMutation = useMutation({
+    mutationFn: async (
+      eventData: { id: string } & Partial<
+        Omit<Event, "id" | "created_by" | "assignee" | "created_at">
+      >
+    ) => {
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("events")
+        .update({
+          ...eventData,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", eventData.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    }
+  });
   useEffect(() => {
     if (!user) return;
 
@@ -165,6 +189,8 @@ export const useEvents = () => {
     isLoading,
     isError,
     createEvent: createEventMutation.mutateAsync,
+    updateEvent: updateEventMutation.mutateAsync,
+    isUpdatingEvent: updateEventMutation.isPending,
     refetch
   };
 };
