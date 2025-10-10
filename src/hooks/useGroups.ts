@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -129,7 +129,26 @@ export const useGroups = () => {
     if (!user) return { error: "Not authenticated" };
 
     try {
-      const { data: group } = await supabase
+      // First, ensure user has a profile
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: user.id,
+          email: user.email || "",
+          full_name: user.user_metadata?.full_name || user.email || ""
+        });
+
+        if (profileError) {
+          return { error: "Could not create user profile" };
+        }
+      }
+
+      const { data: group, error: groupError } = await supabase
         .from("groups")
         .insert({
           name: name.trim(),
@@ -138,6 +157,10 @@ export const useGroups = () => {
         })
         .select()
         .single();
+
+      if (groupError) {
+        throw new Error(`Database error: ${groupError.message}`);
+      }
 
       // Add creator as first member with admin role
       if (group) {
@@ -161,7 +184,6 @@ export const useGroups = () => {
       await fetchGroups();
       return { group, error: null };
     } catch (error) {
-      console.error("Error in createGroup:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -211,14 +233,16 @@ export const useGroups = () => {
       }
 
       // Create invitation
-      const { error: inviteError } = await supabase
+      const { data: invitation, error: inviteError } = await supabase
         .from("group_invitations")
         .insert({
           group_id: groupId,
           invited_user_id: profile?.id || null,
           invited_email: emailLower,
           invited_by: user.id
-        });
+        })
+        .select()
+        .single();
 
       if (inviteError) {
         return { error: "Could not create invitation" };
@@ -229,12 +253,12 @@ export const useGroups = () => {
       return {
         error: null,
         userExists: !!profile,
+        invitationId: invitation?.id,
         message: profile
           ? "Inbjudan skickad till befintlig användare"
           : "Inbjudan skapad för ny användare"
       };
-    } catch (error) {
-      console.log(error);
+    } catch {
       return { error: "An unexpected error occurred while inviting" };
     }
   };
@@ -299,40 +323,43 @@ export const useGroups = () => {
     }
   };
 
-  const getGroupMembers = async (groupId: string) => {
-    if (!user) return [];
+  const getGroupMembers = useCallback(
+    async (groupId: string) => {
+      if (!user) return [];
 
-    try {
-      // First get member IDs
-      const { data: members } = await supabase
-        .from("group_members")
-        .select("user_id, role")
-        .eq("group_id", groupId);
+      try {
+        // First get member IDs
+        const { data: members } = await supabase
+          .from("group_members")
+          .select("user_id, role")
+          .eq("group_id", groupId);
 
-      if (!members || members.length === 0) return [];
+        if (!members || members.length === 0) return [];
 
-      // Then get profile data for each member
-      const userIds = members.map((m) => m.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .in("id", userIds);
+        // Then get profile data for each member
+        const userIds = members.map((m) => m.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", userIds);
 
-      // Combine member data with profile data
-      return members.map((member) => {
-        const profile = profiles?.find((p) => p.id === member.user_id);
-        return {
-          id: member.user_id,
-          full_name: profile?.full_name || "Unknown user",
-          email: profile?.email || "",
-          role: member.role
-        };
-      });
-    } catch (error) {
-      console.log(error);
-      return [];
-    }
-  };
+        // Combine member data with profile data
+        return members.map((member) => {
+          const profile = profiles?.find((p) => p.id === member.user_id);
+          return {
+            id: member.user_id,
+            full_name: profile?.full_name || "Unknown user",
+            email: profile?.email || "",
+            role: member.role
+          };
+        });
+      } catch (error) {
+        console.log(error);
+        return [];
+      }
+    },
+    [user]
+  );
 
   const deleteGroup = async (groupId: string) => {
     if (!user) return { error: "Not authenticated" };

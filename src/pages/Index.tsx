@@ -50,9 +50,11 @@ const Index = () => {
     assignee: string;
     description: string;
     category: string;
+    groupId?: string; // Add optional groupId for personal overview
   }) => {
-    if (!activeGroup?.id) {
-      console.error("No active group selected to add an event to.");
+    const groupId = eventData.groupId || activeGroup?.id;
+    if (!groupId) {
+      console.error("No group selected to add an event to.");
       return;
     }
     setIsAddingEvent(true);
@@ -66,7 +68,7 @@ const Index = () => {
         event_type: eventData.type,
         category: eventData.category,
         assignee_id: eventData.assignee,
-        group_id: activeGroup.id // Use active group from context
+        group_id: groupId // Use selected group or active group
       });
       // No need to manually refetch, react-query handles it on success
       setIsModalOpen(false);
@@ -119,28 +121,19 @@ const Index = () => {
           </div>
 
           <div className="lg:col-span-3">
-            {eventsLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <LoadingSpinner size="large" />
-                  <p className="text-gray-600 mt-4">Loading events...</p>
-                </div>
-              </div>
-            ) : (
-              <CalendarView
-                // No longer needs groupId
-                onEventClick={(event) => {
-                  setSelectedEvent(event);
-                  setIsDetailModalOpen(true);
-                }}
-                onDateClick={(date) => {
-                  setSelectedDate(date);
-                  setIsModalOpen(true);
-                }}
-                loading={eventsLoading || isAddingEvent}
-                events={events} // Pass events directly
-              />
-            )}
+            <CalendarView
+              // No longer needs groupId
+              onEventClick={(event) => {
+                setSelectedEvent(event);
+                setIsDetailModalOpen(true);
+              }}
+              onDateClick={(date) => {
+                setSelectedDate(date);
+                setIsModalOpen(true);
+              }}
+              loading={eventsLoading || isAddingEvent}
+              events={events} // Pass events directly
+            />
           </div>
         </div>
       </div>
