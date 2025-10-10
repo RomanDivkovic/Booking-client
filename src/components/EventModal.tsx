@@ -20,6 +20,7 @@ import {
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { useGroups } from "@/hooks/useGroups";
+import { useGroupMembers } from "@/hooks/useGroupMembers";
 // import { useGroup } from "@/contexts/GroupContext";
 
 interface EventModalProps {
@@ -59,7 +60,8 @@ export const EventModal = ({
   const [groupMembers, setGroupMembers] = useState<
     Array<{ id: string; full_name: string; email: string }>
   >([]);
-  const { getGroupMembers, groups } = useGroups();
+  const { groups } = useGroups();
+  const { getGroupMembers } = useGroupMembers();
 
   useEffect(() => {
     if (selectedDate) {

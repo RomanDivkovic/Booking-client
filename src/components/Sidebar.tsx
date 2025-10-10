@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Plus, List, User, UserPlus, Users, Trash2 } from "lucide-react";
-import { Group, useGroups } from "@/hooks/useGroups";
+import { useGroups } from "@/hooks/useGroups";
+import { Group } from "@/types/group";
 import { useGroup } from "@/contexts/GroupContext";
 import {
   Select,

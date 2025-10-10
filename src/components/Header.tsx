@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useGroups } from "@/hooks/useGroups";
+import { useGroupInvitations } from "@/hooks/useGroupInvitations";
 import { Bell } from "lucide-react";
 import React, { useState, useContext, createContext } from "react";
 import {
@@ -60,7 +60,7 @@ function NotificationList({ notifications }) {
 export const Header = () => {
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
-  const { invitations } = useGroups();
+  const { invitations } = useGroupInvitations();
   const pendingInvitations = invitations.filter(
     (inv) => inv.status === "pending"
   );

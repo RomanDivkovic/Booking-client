@@ -21,7 +21,7 @@ import { Calendar, Clock, User, Tag, Edit, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGroups } from "@/hooks/useGroups";
+import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { Event } from "@/hooks/useEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -46,7 +46,7 @@ export const EventDetailModal = ({
   const [groupMembers, setGroupMembers] = useState<
     Array<{ id: string; full_name: string; email: string }>
   >([]);
-  const { getGroupMembers } = useGroups();
+  const { getGroupMembers } = useGroupMembers();
 
   const [formData, setFormData] = useState({
     title: "",

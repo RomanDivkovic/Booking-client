@@ -1,7 +1,8 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGroupInvitations } from "@/hooks/useGroupInvitations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,18 +14,69 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [invitationId, setInvitationId] = useState<string | null>(null);
+  const [invitationGroup, setInvitationGroup] = useState<{
+    name: string;
+    description?: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     fullName: ""
   });
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
+  const { acceptInvitation, invitations } = useGroupInvitations();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/";
+
+  // Handle invitation links
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const inviteId = urlParams.get("invite");
+
+    if (inviteId) {
+      setInvitationId(inviteId);
+
+      // Find the invitation details
+      const invitation = invitations.find((inv) => inv.id === inviteId);
+      if (invitation) {
+        setInvitationGroup(invitation.group);
+      }
+    }
+  }, [location.search, invitations]);
+
+  // Handle invitation acceptance after successful auth
+  const handleAcceptInvitation = useCallback(async () => {
+    if (!invitationId) return;
+
+    const result = await acceptInvitation(invitationId);
+
+    if (result.error) {
+      toast({
+        title: "Could not accept invitation",
+        description: result.error,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Welcome to the group!",
+        description: `You have successfully joined ${invitationGroup?.name || "the group"}.`
+      });
+      // Clear invitation state
+      setInvitationId(null);
+      setInvitationGroup(null);
+    }
+  }, [invitationId, acceptInvitation, toast, invitationGroup?.name]);
+
+  useEffect(() => {
+    if (user && invitationId) {
+      handleAcceptInvitation();
+    }
+  }, [user, invitationId, handleAcceptInvitation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,8 +148,27 @@ export default function Auth() {
             Welcome to FamCaly
           </h1>
           <p className="text-gray-600 mb-8">
-            The modern family calendar that brings everyone together
+            {invitationGroup
+              ? `You're invited to join ${invitationGroup.name}!`
+              : "The modern family calendar that brings everyone together"}
           </p>
+
+          {invitationGroup && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-blue-900 mb-2">
+                Group Invitation
+              </h3>
+              <p className="text-blue-700 text-sm">
+                <strong>{invitationGroup.name}</strong>
+                {invitationGroup.description && (
+                  <span> - {invitationGroup.description}</span>
+                )}
+              </p>
+              <p className="text-blue-600 text-sm mt-2">
+                Sign in or create an account to join this group.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Auth Form */}

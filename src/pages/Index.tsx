@@ -10,13 +10,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGroup } from "@/contexts/GroupContext";
 import { useEvents } from "@/hooks/useEvents";
 import { useGroups } from "@/hooks/useGroups";
+import { useGroupInvitations } from "@/hooks/useGroupInvitations";
 import { LoadingSpinner } from "@/components/SkeletonLoaders";
 import { GroupInviteModal } from "@/components/GroupInviteModal";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
-  const { groups, loading: groupsLoading, inviteUserToGroup } = useGroups();
+  const { groups, loading: groupsLoading } = useGroups();
+  const { inviteUserToGroup } = useGroupInvitations();
   const { activeGroup } = useGroup();
   const navigate = useNavigate();
 
