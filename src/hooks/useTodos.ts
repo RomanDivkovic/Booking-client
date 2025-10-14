@@ -30,18 +30,25 @@ const fetchTodos = async (
     query = query.eq("group_id", activeGroupId);
   } else {
     // Fetch todos for all groups the user can access (created or member of)
-    // Use the database function to get all accessible groups
-    const { data: accessibleGroups } = await supabase.rpc("get_group_events", {
-      user_id: userId
-    });
+    // Get groups created by user
+    const { data: createdGroups } = await supabase
+      .from("groups")
+      .select("id")
+      .eq("created_by", userId);
 
-    if (!accessibleGroups || accessibleGroups.length === 0) return [];
+    // Get groups where user is a member
+    const { data: memberGroups } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId);
 
-    // Extract unique group IDs
-    const groupIds = [
-      ...new Set(accessibleGroups.map((event: any) => event.group_id))
-    ];
-    query = query.in("group_id", groupIds);
+    const createdGroupIds = createdGroups?.map((g) => g.id) || [];
+    const memberGroupIds = memberGroups?.map((g) => g.group_id) || [];
+    const allGroupIds = [...new Set([...createdGroupIds, ...memberGroupIds])];
+
+    if (allGroupIds.length === 0) return [];
+
+    query = query.in("group_id", allGroupIds);
   }
 
   const { data, error } = await query.order("created_at", { ascending: false });

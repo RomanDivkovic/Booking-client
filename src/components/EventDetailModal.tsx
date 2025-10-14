@@ -60,7 +60,7 @@ export const EventDetailModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-full max-w-[95vw] sm:max-w-[600px] p-2 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex items-center justify-between pr-8">
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5" />
               <span>{isEditing ? "Redigera event" : "Event details"}</span>
