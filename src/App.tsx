@@ -10,7 +10,7 @@ import Auth from "./pages/auth/Auth";
 import Todos from "./pages/Todos";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
-import FAQ from "./pages/FAQ";
+import FAQ from "./pages/faq/FAQ";
 import TOS from "./pages/TOS";
 import NotFound from "./pages/NotFound";
 import MainLayout from "@/components/MainLayout";
