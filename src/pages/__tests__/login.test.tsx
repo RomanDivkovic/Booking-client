@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../../contexts/AuthContext";
-import Auth from "../Auth";
+import Auth from "../auth/Auth";
 import "@testing-library/jest-dom";
 
 // Mocka useToast eftersom den används i Auth-komponenten

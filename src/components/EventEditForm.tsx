@@ -21,14 +21,14 @@ interface EventEditFormProps {
   isSubmitting: boolean;
 }
 
-export const EventEditForm: React.FC<EventEditFormProps> = ({
+export const EventEditForm = ({
   formData,
   onFormDataChange,
   onSubmit,
   onCancel,
   groupMembers,
   isSubmitting
-}) => {
+}: EventEditFormProps) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
