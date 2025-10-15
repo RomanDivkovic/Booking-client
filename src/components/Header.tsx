@@ -65,8 +65,7 @@ export const Header = () => {
     (inv) => inv.status === "pending"
   );
   const [showNotifications, setShowNotifications] = useState(false);
-  const selectedGroupId = localStorage.getItem("selectedGroupId");
-  const { events = [] } = useEvents(selectedGroupId);
+  const { events = [] } = useEvents();
 
   // Build notifications
   const notifications = [
@@ -98,7 +97,7 @@ export const Header = () => {
               >
                 <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center overflow-hidden">
                   <img
-                    src="/web-app-manifest-192x192.png"
+                    src="/famcal.png"
                     alt="FamCaly Logo"
                     className="w-full h-full object-cover"
                   />

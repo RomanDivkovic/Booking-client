@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+import Auth from "./pages/auth/Auth";
 import Todos from "./pages/Todos";
 import Profile from "./pages/Profile";
 import About from "./pages/About";

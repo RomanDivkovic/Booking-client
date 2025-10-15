@@ -40,11 +40,17 @@ export default function Todos() {
     isCreatingTodo,
     deleteTodo,
     isDeletingTodo
-  } = useTodos();
+  } = useTodos(selectedGroupId || undefined);
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
-    const groupId = selectedGroupId || activeGroup?.id;
+    let groupId = selectedGroupId || activeGroup?.id;
+
+    // If "All Groups" is selected but no active group, use the first available group
+    if (!groupId && selectedGroupId === "" && groups.length > 0) {
+      groupId = groups[0].id;
+    }
+
     if (!newTodo.trim() || !groupId || !user) return;
 
     const todoData = {
@@ -160,6 +166,7 @@ export default function Todos() {
                           <SelectValue placeholder="Select group" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">All Groups</SelectItem>
                           {groups.map((group) => (
                             <SelectItem key={group.id} value={group.id}>
                               🏠 {group.name}
@@ -189,7 +196,7 @@ export default function Todos() {
                       disabled={
                         isCreatingTodo ||
                         !newTodo.trim() ||
-                        (!activeGroup && !selectedGroupId)
+                        (!activeGroup && selectedGroupId === undefined)
                       }
                       className="w-full sm:w-auto"
                     >

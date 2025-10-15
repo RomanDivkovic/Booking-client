@@ -25,8 +25,8 @@ const fetchTodos = async (
   // Always filter for tasks
   query = query.eq("event_type", "task");
 
-  if (activeGroupId) {
-    // Fetch todos for the single active group
+  if (activeGroupId !== null && activeGroupId !== "") {
+    // Fetch todos for the specific group
     query = query.eq("group_id", activeGroupId);
   } else {
     // Fetch todos for all groups the user can access (created or member of)
@@ -46,7 +46,10 @@ const fetchTodos = async (
     const memberGroupIds = memberGroups?.map((g) => g.group_id) || [];
     const allGroupIds = [...new Set([...createdGroupIds, ...memberGroupIds])];
 
-    if (allGroupIds.length === 0) return [];
+    if (allGroupIds.length === 0) {
+      // If user has no groups, return empty array
+      return [];
+    }
 
     query = query.in("group_id", allGroupIds);
   }
@@ -60,18 +63,24 @@ const fetchTodos = async (
   return data || [];
 };
 
-export const useTodos = () => {
+export const useTodos = (groupId?: string | null) => {
   const { user } = useAuth();
   const { activeGroup } = useGroup();
   const queryClient = useQueryClient();
+
+  // Determine which group to fetch todos for:
+  // - If groupId is a string (including empty string), use that specific group
+  // - If groupId is null, fetch from all groups
+  // - If groupId is undefined, use active group
+  const effectiveGroupId = groupId !== undefined ? groupId : activeGroup?.id;
 
   const {
     data: todos,
     isLoading,
     isError
   } = useQuery<Todo[]>({
-    queryKey: ["todos", activeGroup?.id ?? "personal-overview", user?.id],
-    queryFn: () => fetchTodos(user?.id, activeGroup?.id ?? null),
+    queryKey: ["todos", effectiveGroupId ?? "all-groups", user?.id],
+    queryFn: () => fetchTodos(user?.id, effectiveGroupId),
     enabled: !!user
   });
 
