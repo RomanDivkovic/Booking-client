@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { AuthFormData } from "@/hooks/useAuthForm";
+import { TermsInfo } from "./TermsInfo";
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -114,6 +115,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
             )}
           </Button>
         </form>
+
+        <TermsInfo isLogin={isLogin} />
       </CardContent>
     </Card>
   );
