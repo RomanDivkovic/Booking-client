@@ -6,7 +6,6 @@ import { useAuthSubmit } from "@/hooks/useAuthSubmit";
 import { AuthHeader } from "@/components/auth/AuthHeader";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { AuthToggle } from "@/components/auth/AuthToggle";
-import { TermsInfo } from "@/components/auth/TermsInfo";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -43,8 +42,6 @@ export default function Auth() {
         />
 
         <AuthToggle isLogin={isLogin} onToggle={toggleMode} loading={loading} />
-
-        <TermsInfo isLogin={isLogin} />
       </div>
     </div>
   );
