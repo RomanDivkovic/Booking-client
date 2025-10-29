@@ -1,6 +1,5 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { GroupProvider } from "@/contexts/GroupContext";
 import { GroupInviteModal } from "@/components/GroupInviteModal";
@@ -12,6 +11,24 @@ global.fetch = jest.fn(() =>
     json: () => Promise.resolve({ message: "Invite sent successfully" })
   })
 ) as jest.Mock;
+
+// Mock supabase
+jest.mock("../../integrations/supabase/client", () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn(() =>
+            Promise.resolve({
+              data: { full_name: "Test User", email: "test@example.com" },
+              error: null
+            })
+          )
+        }))
+      }))
+    }))
+  }
+}));
 
 const mockUser = { id: "user-1", email: "test@example.com" };
 const mockGroup = {
@@ -28,18 +45,16 @@ const renderComponent = () => {
   });
 
   return render(
-    <MemoryRouter>
-      <AuthProvider>
-        <GroupProvider>
-          <GroupInviteModal
-            isOpen={true}
-            onClose={() => {}}
-            onInvite={mockOnInvite}
-            groupName={mockGroup.name}
-          />
-        </GroupProvider>
-      </AuthProvider>
-    </MemoryRouter>
+    <AuthProvider>
+      <GroupProvider>
+        <GroupInviteModal
+          isOpen={true}
+          onClose={() => {}}
+          onInvite={mockOnInvite}
+          groupName={mockGroup.name}
+        />
+      </GroupProvider>
+    </AuthProvider>
   );
 };
 
@@ -84,7 +99,8 @@ describe("Invitation Functionality", () => {
         body: JSON.stringify({
           to: "invite@example.com",
           inviteLink: "http://localhost:3000/auth?invite=invitation-123",
-          groupName: mockGroup.name
+          groupName: mockGroup.name,
+          inviterName: "Test User"
         })
       });
     });
