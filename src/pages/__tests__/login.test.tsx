@@ -1,13 +1,29 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../../contexts/AuthContext";
 import Auth from "../auth/Auth";
 import "@testing-library/jest-dom";
+
+// Mock TanStack Router
+jest.mock("@tanstack/react-router", () => ({
+  useRouterState: () => ({
+    location: {
+      search: {}
+    }
+  }),
+  useNavigate: () => jest.fn()
+}));
 
 // Mocka useToast eftersom den används i Auth-komponenten
 jest.mock("../../hooks/use-toast", () => ({
   useToast: () => ({
     toast: jest.fn()
+  })
+}));
+
+// Mock useInvitationHandler
+jest.mock("../../hooks/useInvitationHandler", () => ({
+  useInvitationHandler: () => ({
+    invitationGroup: null
   })
 }));
 
@@ -24,11 +40,9 @@ jest.mock("../../integrations/supabase/client", () => ({
 describe("Login", () => {
   it("should render login form", () => {
     render(
-      <MemoryRouter>
-        <AuthProvider>
-          <Auth />
-        </AuthProvider>
-      </MemoryRouter>
+      <AuthProvider>
+        <Auth />
+      </AuthProvider>
     );
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
