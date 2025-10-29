@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthFormData } from "./useAuthForm";
@@ -17,7 +17,7 @@ export const useAuthSubmit = (isLogin: boolean) => {
       if (isLogin) {
         const { error } = await signIn(formData.email, formData.password);
         if (!error) {
-          navigate(from, { replace: true });
+          navigate({ to: from, replace: true });
         } else {
           toast({
             title: "Login failed",
@@ -37,7 +37,7 @@ export const useAuthSubmit = (isLogin: boolean) => {
             title: "Registration successful",
             description: "Your account has been created successfully!"
           });
-          navigate(from, { replace: true });
+          navigate({ to: from, replace: true });
         } else {
           toast({
             title: "Registration failed",

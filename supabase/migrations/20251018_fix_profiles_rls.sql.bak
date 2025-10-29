@@ -1,0 +1,40 @@
+-- Allow users to view profiles of people who invited them
+CREATE POLICY "Users can view profiles of people who invited them" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM group_invitations
+      WHERE group_invitations.invited_by = id
+      AND group_invitations.invited_email = (SELECT email FROM profiles WHERE id = auth.uid())
+    )
+  );
+
+-- Allow users to view profiles of people in their groups
+CREATE POLICY "Users can view profiles of group members" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM group_members
+      WHERE group_members.user_id = id
+      AND group_members.group_id IN (
+        SELECT group_members.group_id
+        FROM group_members
+        WHERE group_members.user_id = auth.uid()
+        UNION
+        SELECT groups.id
+        FROM groups
+        WHERE groups.created_by = auth.uid()
+      )
+    )
+  );
+
+-- Allow group creators to view profiles of invited users
+CREATE POLICY "Group creators can view invited user profiles" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM group_invitations
+      WHERE group_invitations.invited_by = auth.uid()
+      AND (
+        group_invitations.invited_user_id = id
+        OR group_invitations.invited_by = id
+      )
+    )
+  );

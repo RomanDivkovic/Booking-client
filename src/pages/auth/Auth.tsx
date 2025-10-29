@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useRouterState } from "@tanstack/react-router";
 import { useAuthForm } from "@/hooks/useAuthForm";
 import { useInvitationHandler } from "@/hooks/useInvitationHandler";
 import { useAuthSubmit } from "@/hooks/useAuthSubmit";
@@ -15,8 +15,10 @@ export default function Auth() {
   const { invitationGroup } = useInvitationHandler();
   const { loading, handleSubmit } = useAuthSubmit(isLogin);
 
-  const location = useLocation();
-  const from = location.state?.from?.pathname || "/";
+  // Get search params from TanStack Router
+  const routerState = useRouterState();
+  const from =
+    (routerState.location.search as Record<string, string>)?.from || "/";
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

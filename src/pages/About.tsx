@@ -11,7 +11,7 @@ import {
   Mail,
   HelpCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
 
 export default function About() {
   return (

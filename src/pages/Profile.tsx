@@ -88,9 +88,16 @@ export default function Profile() {
     setLoading(true);
 
     try {
+      // Update auth metadata
       await supabase.auth.updateUser({
         data: { full_name: formData.fullName }
       });
+
+      // Also update the profiles table
+      await supabase
+        .from("profiles")
+        .update({ full_name: formData.fullName })
+        .eq("id", user?.id);
 
       toast({
         title: "Profile updated successfully",

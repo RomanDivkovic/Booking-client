@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
@@ -8,7 +8,16 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const location = useLocation();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      navigate({
+        to: "/auth",
+        replace: true
+      });
+    }
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -19,8 +28,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
-    // Redirect to auth page with return url
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return null; // Will redirect via useEffect
   }
 
   return <>{children}</>;

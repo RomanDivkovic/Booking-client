@@ -9,7 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Copy, Check } from "lucide-react";
 
 interface GroupInviteModalProps {
@@ -34,6 +36,7 @@ export const GroupInviteModal = ({
   const [invitationLink, setInvitationLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,13 +71,24 @@ export const GroupInviteModal = ({
         // Skicka e-post om användaren inte finns
         if (!result.userExists) {
           try {
+            // Fetch the inviter's profile to get the correct name
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, email")
+              .eq("id", user.id)
+              .single();
+
+            const inviterName =
+              profile?.full_name || profile?.email || "En gruppmedlem";
+
             const res = await fetch("/api/send-invite-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 to: email,
                 inviteLink: link,
-                groupName
+                groupName,
+                inviterName
               })
             });
             if (res.ok) {

@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useGroupInvitations } from "@/hooks/useGroupInvitations";
+import { useGroups } from "@/hooks/useGroups";
 import { Mail, Check, X, Users, Calendar } from "lucide-react";
 import { LoadingSpinner } from "@/components/SkeletonLoaders";
 
 export default function Invitations() {
   const { invitations, loading, acceptInvitation, declineInvitation } =
     useGroupInvitations();
+  const { refetch: refetchGroups } = useGroups();
   const { toast } = useToast();
   const [processingInvitation, setProcessingInvitation] = useState<
     string | null
@@ -18,6 +20,9 @@ export default function Invitations() {
   const handleAcceptInvitation = async (invitationId: string) => {
     setProcessingInvitation(invitationId);
     try {
+      // Find the invitation to get group name
+      const invitation = invitations.find((inv) => inv.id === invitationId);
+      const groupName = invitation?.group?.name || "the calendar";
       const { error } = await acceptInvitation(invitationId);
       if (error) {
         toast({
@@ -26,10 +31,19 @@ export default function Invitations() {
           variant: "destructive"
         });
       } else {
+        // Show success toast immediately
         toast({
           title: "Invitation accepted!",
-          description: "You now have access to the group."
+          description: `You now have access to the "${groupName}" calendar.`
         });
+
+        // Refetch groups with multiple retries to ensure the group appears
+        // This is needed because the database needs time to process and RLS might not immediately allow access
+        const maxRetries = 5;
+        for (let i = 0; i < maxRetries; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
+          await refetchGroups();
+        }
       }
     } finally {
       setProcessingInvitation(null);
@@ -96,86 +110,90 @@ export default function Invitations() {
               </CardContent>
             </Card>
           ) : (
-            invitations.map((invitation) => (
-              <Card
-                key={invitation.id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Users className="w-5 h-5 text-blue-600" />
-                    <span>Invitation to {invitation.group?.name}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-gray-600 mb-2">
-                        {invitation.invited_by_user?.full_name ||
-                          "Unknown user"}
-                        has invited you to the group "{invitation.group?.name}
-                        ".
-                      </p>
-                      {invitation.group?.description && (
-                        <p className="text-sm text-gray-500">
-                          {invitation.group.description}
+            invitations
+              .filter((invitation) => processingInvitation !== invitation.id)
+              .map((invitation) => (
+                <Card
+                  key={invitation.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Users className="w-5 h-5 text-blue-600" />
+                      <span>
+                        Invitation to {invitation.group?.name || "a calendar"}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-gray-600 mb-2">
+                          {invitation.invited_by_user?.full_name ||
+                            "Unknown user"}
+                          has invited you to the group "{invitation.group?.name}
+                          ".
                         </p>
-                      )}
-                    </div>
+                        {invitation.group?.description && (
+                          <p className="text-sm text-gray-500">
+                            {invitation.group.description}
+                          </p>
+                        )}
+                      </div>
 
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          Created{" "}
-                          {new Date(invitation.created_at).toLocaleDateString(
-                            "en-US"
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            Created{" "}
+                            {new Date(invitation.created_at).toLocaleDateString(
+                              "en-US"
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <Button
+                          onClick={() => handleAcceptInvitation(invitation.id)}
+                          disabled={processingInvitation === invitation.id}
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                          {processingInvitation === invitation.id ? (
+                            <div className="flex items-center space-x-2">
+                              <LoadingSpinner size="small" />
+                              <span>Accepting...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <Check className="w-4 h-4 mr-2" />
+                              Accept
+                            </>
                           )}
-                        </span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleDeclineInvitation(invitation.id)}
+                          disabled={processingInvitation === invitation.id}
+                          className="flex-1"
+                        >
+                          {processingInvitation === invitation.id ? (
+                            <div className="flex items-center space-x-2">
+                              <LoadingSpinner size="small" />
+                              <span>Declining...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <X className="w-4 h-4 mr-2" />
+                              Decline
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex space-x-3">
-                      <Button
-                        onClick={() => handleAcceptInvitation(invitation.id)}
-                        disabled={processingInvitation === invitation.id}
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                      >
-                        {processingInvitation === invitation.id ? (
-                          <div className="flex items-center space-x-2">
-                            <LoadingSpinner size="small" />
-                            <span>Accepting...</span>
-                          </div>
-                        ) : (
-                          <>
-                            <Check className="w-4 h-4 mr-2" />
-                            Accept
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleDeclineInvitation(invitation.id)}
-                        disabled={processingInvitation === invitation.id}
-                        className="flex-1"
-                      >
-                        {processingInvitation === invitation.id ? (
-                          <div className="flex items-center space-x-2">
-                            <LoadingSpinner size="small" />
-                            <span>Declining...</span>
-                          </div>
-                        ) : (
-                          <>
-                            <X className="w-4 h-4 mr-2" />
-                            Decline
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))
           )}
         </div>
       </div>

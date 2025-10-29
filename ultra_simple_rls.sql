@@ -35,6 +35,29 @@ DROP POLICY IF EXISTS "Users can delete their own events in groups they are memb
 CREATE POLICY "profiles_self_access" ON profiles
   FOR ALL USING (auth.uid() = id);
 
+-- Allow users to view profiles of people who invited them
+CREATE POLICY "profiles_invited_by_access" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM group_invitations
+      WHERE group_invitations.invited_by = id
+      AND group_invitations.invited_email = (SELECT email FROM profiles WHERE id = auth.uid())
+    )
+  );
+
+-- Allow users to view profiles of group members (for people they share groups with)
+CREATE POLICY "profiles_group_members_access" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM group_members gm1
+      WHERE gm1.user_id = id
+      AND gm1.group_id IN (
+        SELECT gm2.group_id FROM group_members gm2
+        WHERE gm2.user_id = auth.uid()
+      )
+    )
+  );
+
 -- Groups policies - creators can do everything, no member checks
 CREATE POLICY "groups_creator_access" ON groups
   FOR ALL USING (auth.uid() = created_by);

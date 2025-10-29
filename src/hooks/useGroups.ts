@@ -22,32 +22,31 @@ export const useGroups = () => {
       // Get groups created by the user (these will be visible due to RLS policy)
       const { data: createdGroups } = await supabase.from("groups").select("*");
 
-      // Get groups where user is a member
-      const { data: membershipData } = await supabase
+      // Get groups where user is a member (now possible with the member access policy)
+      const { data: memberGroups } = await supabase
         .from("group_members")
-        .select("group_id")
+        .select(
+          `
+          group_id,
+          groups!inner(*)
+          `
+        )
         .eq("user_id", user.id);
 
-      // Get details for groups where user is a member (but didn't create)
-      const memberGroups: Group[] = [];
-      if (membershipData && membershipData.length > 0) {
-        const memberGroupIds = membershipData.map((m) => m.group_id);
-        const nonCreatedGroupIds = memberGroupIds.filter(
-          (id) => !createdGroups?.some((g) => g.id === id)
-        );
+      // Extract the group data from member relationships
+      const memberGroupData =
+        memberGroups?.map((m) => m.groups).filter(Boolean) || [];
 
-        if (nonCreatedGroupIds.length > 0) {
-          // We need to get these groups without RLS restrictions
-          // For now, we'll skip them since RLS prevents access
-        }
-      }
-
-      // Combine created groups with member groups
-      const allGroups = [...(createdGroups || []), ...memberGroups];
+      // Combine created groups with member groups, removing duplicates
+      const allGroups = [...(createdGroups || []), ...memberGroupData];
+      const uniqueGroups = allGroups.filter(
+        (group, index, self) =>
+          index === self.findIndex((g) => g.id === group.id)
+      );
 
       // Add member count to each group
       const groupsWithMemberCount = await Promise.all(
-        allGroups.map(async (group) => {
+        uniqueGroups.map(async (group) => {
           const { count } = await supabase
             .from("group_members")
             .select("*", { count: "exact", head: true })
@@ -70,6 +69,46 @@ export const useGroups = () => {
 
   useEffect(() => {
     fetchGroups();
+
+    // Set up real-time subscriptions (skip in test environment)
+    try {
+      const groupsSubscription = supabase
+        .channel("groups_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "groups"
+          },
+          () => {
+            fetchGroups();
+          }
+        )
+        .subscribe();
+
+      const membersSubscription = supabase
+        .channel("group_members_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "group_members"
+          },
+          () => {
+            fetchGroups();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        groupsSubscription.unsubscribe();
+        membersSubscription.unsubscribe();
+      };
+    } catch {
+      // Skip real-time subscriptions in test environment
+    }
   }, [fetchGroups]);
 
   const createGroup = async (name: string, description?: string) => {
