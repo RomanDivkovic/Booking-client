@@ -1,7 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Plus, List, User, UserPlus, Users, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  Plus,
+  List,
+  User,
+  UserPlus,
+  Users,
+  Trash2,
+  Settings
+} from "lucide-react";
 import { useGroups } from "@/hooks/useGroups";
 import { Group } from "@/types/group";
 import { useGroup } from "@/contexts/GroupContext";
@@ -194,6 +202,15 @@ export const Sidebar = ({ onAddClick, onInviteClick }: SidebarProps) => {
               Profile
             </Button>
           </Link>
+
+          {groups.some((group) => group.created_by === user?.id) && (
+            <Link to="/group-management">
+              <Button variant="ghost" className="w-full justify-start">
+                <Settings className="w-4 h-4 mr-2" />
+                Group Management
+              </Button>
+            </Link>
+          )}
         </CardContent>
       </Card>
       <CreateGroupModal

@@ -7,7 +7,7 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { HelpCircle, Calendar, Users, Shield, Zap, Mail } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
 
 export default function FAQ() {
   const [openItem, setOpenItem] = useState<string | undefined>(undefined);

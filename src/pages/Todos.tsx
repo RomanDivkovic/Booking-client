@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGroup } from "@/contexts/GroupContext";
 import { useTodos } from "@/hooks/useTodos";
 import { useGroups } from "@/hooks/useGroups";
-import { Plus, Trash2, List, Circle } from "lucide-react";
+import { Plus, List, Circle } from "lucide-react";
 import { TodoSkeleton, LoadingSpinner } from "@/components/SkeletonLoaders";
 import { format } from "date-fns";
 import {
@@ -24,7 +24,7 @@ export default function Todos() {
   const [newTodo, setNewTodo] = useState("");
   const { user } = useAuth();
   const { activeGroup } = useGroup();
-  const { groups } = useGroups();
+  const { groups, loading: groupsLoading } = useGroups();
   const { toast } = useToast();
   const [todoDate, setTodoDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
@@ -32,15 +32,18 @@ export default function Todos() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>(
     activeGroup?.id || ""
   );
+  const [filter, setFilter] = useState<
+    "all" | "pending" | "completed" | "outdated"
+  >("all");
 
   const {
     todos,
     isLoading,
     createTodo,
     isCreatingTodo,
-    deleteTodo,
-    isDeletingTodo
-  } = useTodos(selectedGroupId || undefined);
+    toggleTodoCompletion,
+    isTogglingCompletion
+  } = useTodos(selectedGroupId === "" ? null : selectedGroupId);
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,40 +81,64 @@ export default function Todos() {
     }
   };
 
-  const handleToggleTodo = async (todoId: string, completed: boolean) => {
-    if (completed) {
-      try {
-        await deleteTodo(todoId);
-        toast({
-          title: "Todo completed!",
-          description: "Great job!"
-        });
-      } catch (error: unknown) {
-        console.log(error);
-        toast({
-          title: "Error completing todo",
-          description: "Could not update your todo. Please try again.",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleDeleteTodo = async (todoId: string) => {
+  const handleToggleTodo = async (todoId: string) => {
     try {
-      await deleteTodo(todoId);
+      await toggleTodoCompletion(todoId);
       toast({
-        title: "Todo deleted!",
-        description: "Your todo has been removed."
+        title: "Todo updated!",
+        description: "Todo completion status has been updated."
       });
     } catch (error: unknown) {
       console.log(error);
       toast({
-        title: "Error deleting todo",
-        description: "Could not delete your todo. Please try again.",
+        title: "Error updating todo",
+        description: "Could not update your todo. Please try again.",
         variant: "destructive"
       });
     }
+  };
+
+  // Filter and sort todos
+  const filteredTodos = todos
+    .filter((todo) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todoDate = new Date(todo.event_date);
+
+      switch (filter) {
+        case "completed":
+          return todo.completed === true;
+        case "pending":
+          return (todo.completed ?? false) === false;
+        case "outdated":
+          return (todo.completed ?? false) === false && todoDate < today;
+        default:
+          return true;
+      }
+    })
+    .sort((a, b) => {
+      // Sort by completion status, then by date
+      const aCompleted = a.completed ?? false;
+      const bCompleted = b.completed ?? false;
+      if (aCompleted !== bCompleted) {
+        return aCompleted ? 1 : -1;
+      }
+      return (
+        new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+      );
+    });
+
+  const isOutdated = (todo: any) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return !todo.completed && new Date(todo.event_date) < today;
+  };
+
+  const completionStats = {
+    total: todos.length,
+    completed: todos.filter((t) => (t.completed ?? false) === true).length,
+    pending: todos.filter((t) => (t.completed ?? false) === false).length,
+    outdated: todos.filter((t) => isOutdated(t)).length
   };
 
   if (groups.length === 0) {
@@ -148,6 +175,58 @@ export default function Todos() {
               </p>
             </div>
 
+            {/* Filter Section */}
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={filter === "all" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilter("all")}
+                    >
+                      All ({completionStats.total})
+                    </Button>
+                    <Button
+                      variant={filter === "pending" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilter("pending")}
+                    >
+                      Pending ({completionStats.pending})
+                    </Button>
+                    <Button
+                      variant={filter === "completed" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilter("completed")}
+                    >
+                      Completed ({completionStats.completed})
+                    </Button>
+                    <Button
+                      variant={filter === "outdated" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilter("outdated")}
+                      className={
+                        completionStats.outdated > 0
+                          ? "border-red-500 text-red-600"
+                          : ""
+                      }
+                    >
+                      Overdue ({completionStats.outdated})
+                    </Button>
+                  </div>
+                  {completionStats.total > 0 && (
+                    <div className="text-sm text-gray-600">
+                      {Math.round(
+                        (completionStats.completed / completionStats.total) *
+                          100
+                      )}
+                      % completed
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Add Todo Form */}
             <Card className="mb-8">
               <CardHeader>
@@ -161,17 +240,20 @@ export default function Todos() {
                       <Select
                         value={selectedGroupId}
                         onValueChange={setSelectedGroupId}
+                        disabled={groupsLoading}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select group" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="">All Groups</SelectItem>
-                          {groups.map((group) => (
-                            <SelectItem key={group.id} value={group.id}>
-                              🏠 {group.name}
-                            </SelectItem>
-                          ))}
+                          {groups &&
+                            groups.length > 0 &&
+                            groups.map((group) => (
+                              <SelectItem key={group.id} value={group.id}>
+                                🏠 {group.name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -239,38 +321,50 @@ export default function Todos() {
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Circle className="w-5 h-5 text-blue-600" />
-                      <span>Your Todos ({todos.length})</span>
+                      <span>Your Todos ({filteredTodos.length})</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {todos.map((todo) => (
+                      {filteredTodos.map((todo) => (
                         <div
                           key={todo.id}
-                          className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors animate-in slide-in-from-top-2 duration-300"
+                          className={`flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors animate-in slide-in-from-top-2 duration-300 ${
+                            todo.completed ? "bg-green-50 border-green-200" : ""
+                          } ${
+                            isOutdated(todo) ? "bg-red-50 border-red-200" : ""
+                          }`}
                         >
                           <Checkbox
-                            onCheckedChange={(checked) =>
-                              handleToggleTodo(todo.id, checked as boolean)
-                            }
+                            checked={todo.completed || false}
+                            onCheckedChange={() => handleToggleTodo(todo.id)}
+                            disabled={isTogglingCompletion}
                             className="flex-shrink-0"
                           />
-                          <span className="flex-1 text-gray-900">
-                            {todo.title}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteTodo(todo.id)}
-                            disabled={isDeletingTodo}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          <span
+                            className={`flex-1 ${
+                              todo.completed
+                                ? "line-through text-gray-500"
+                                : "text-gray-900"
+                            }`}
                           >
-                            {isDeletingTodo ? (
-                              <LoadingSpinner size="small" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
+                            {todo.title}
+                            {isOutdated(todo) && !todo.completed && (
+                              <span className="ml-2 text-xs text-red-600 font-medium">
+                                (Overdue)
+                              </span>
                             )}
-                          </Button>
+                          </span>
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <span>
+                              {format(new Date(todo.event_date), "MMM d")}
+                            </span>
+                            {todo.completed && todo.completed_at && (
+                              <span className="text-green-600">
+                                ✓ {format(new Date(todo.completed_at), "MMM d")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

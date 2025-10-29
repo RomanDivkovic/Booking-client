@@ -9,37 +9,108 @@ import { generateInvitationLink } from "@/utils/groupUtils";
  */
 export const useGroupInvitations = () => {
   const [invitations, setInvitations] = useState<GroupInvitation[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   const fetchInvitations = useCallback(async () => {
     if (!user) {
       setInvitations([]);
+      setLoading(false);
       return;
     }
 
     try {
+      setLoading(true);
+      // First, fetch the main invitation data
       const { data: invitationsData } = await supabase
         .from("group_invitations")
-        .select(
-          `
-          *,
-          group:group_id(name, description),
-          invited_by_user:invited_by(full_name, email)
-        `
-        )
+        .select("*")
         .eq("invited_email", user.email)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
-      setInvitations(invitationsData || []);
+      if (!invitationsData) {
+        setInvitations([]);
+        return;
+      }
+
+      // For each invitation, fetch group and inviter info separately
+      const invitationsWithData = await Promise.all(
+        invitationsData.map(async (invitation) => {
+          const result = { ...invitation };
+
+          // Try to fetch group info
+          try {
+            const { data: groupData } = await supabase
+              .from("groups")
+              .select("name, description")
+              .eq("id", invitation.group_id)
+              .maybeSingle();
+
+            result.group = groupData || { name: "", description: null };
+          } catch {
+            result.group = { name: "", description: null };
+          }
+
+          // Try to fetch inviter info
+          try {
+            const { data: inviterData } = await supabase
+              .from("profiles")
+              .select("full_name, email")
+              .eq("id", invitation.invited_by)
+              .maybeSingle();
+
+            result.invited_by_user = inviterData || {
+              full_name: "Someone",
+              email: ""
+            };
+          } catch {
+            result.invited_by_user = {
+              full_name: "Someone",
+              email: ""
+            };
+          }
+
+          return result;
+        })
+      );
+
+      setInvitations(invitationsWithData);
     } catch {
       setInvitations([]);
+    } finally {
+      setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
     fetchInvitations();
-  }, [fetchInvitations]);
+
+    // Set up real-time subscription for invitation changes (skip in test environment)
+    try {
+      const subscription = supabase
+        .channel("invitations_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "group_invitations",
+            filter: `invited_email=eq.${user?.email}`
+          },
+          () => {
+            fetchInvitations();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch {
+      // Skip real-time subscriptions in test environment
+    }
+  }, [fetchInvitations, user?.email]);
 
   const inviteUserToGroup = async (groupId: string, email: string) => {
     if (!user) return { error: "Not authenticated" };
@@ -118,7 +189,8 @@ export const useGroupInvitations = () => {
             body: JSON.stringify({
               to: emailLower,
               inviteLink,
-              groupName: group.name
+              groupName: group.name,
+              inviterName: user.user_metadata?.full_name || user.email
             })
           });
 
@@ -147,11 +219,11 @@ export const useGroupInvitations = () => {
     if (!user) return { error: "Not authenticated" };
 
     try {
-      const { data } = await supabase.rpc("accept_group_invitation", {
+      const { data, error } = await supabase.rpc("accept_group_invitation", {
         invitation_id: invitationId
       });
 
-      if (!data) {
+      if (error || data === false) {
         return { error: "The invitation could not be accepted" };
       }
 
@@ -168,11 +240,11 @@ export const useGroupInvitations = () => {
     if (!user) return { error: "Not authenticated" };
 
     try {
-      const { data } = await supabase.rpc("decline_group_invitation", {
+      const { data, error } = await supabase.rpc("decline_group_invitation", {
         invitation_id: invitationId
       });
 
-      if (!data) {
+      if (error || data === false) {
         return { error: "The invitation could not be declined" };
       }
 
@@ -187,6 +259,7 @@ export const useGroupInvitations = () => {
 
   return {
     invitations,
+    loading,
     inviteUserToGroup,
     acceptInvitation,
     declineInvitation,

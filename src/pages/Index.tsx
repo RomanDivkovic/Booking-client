@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { CalendarView } from "@/components/CalendarView";
 import { EventModal } from "@/components/EventModal";
 import { EventDetailModal } from "@/components/EventDetailModal";
@@ -40,7 +40,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/auth");
+      navigate({ to: "/auth" });
     }
   }, [user, authLoading, navigate]);
 

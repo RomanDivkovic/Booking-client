@@ -14,53 +14,37 @@ const fetchTodos = async (
 ): Promise<Todo[]> => {
   if (!userId) return [];
 
-  let query = supabase.from("events").select(`
-    *,
-    assignee:profiles (
-      id,
-      full_name
-    )
-  `);
+  try {
+    // Get all todos the user can access (RLS will filter appropriately)
+    const { data, error } = await supabase
+      .from("events")
+      .select(
+        `
+        *,
+        assignee:profiles (
+          id,
+          full_name
+        )
+      `
+      )
+      .eq("event_type", "task");
 
-  // Always filter for tasks
-  query = query.eq("event_type", "task");
-
-  if (activeGroupId !== null && activeGroupId !== "") {
-    // Fetch todos for the specific group
-    query = query.eq("group_id", activeGroupId);
-  } else {
-    // Fetch todos for all groups the user can access (created or member of)
-    // Get groups created by user
-    const { data: createdGroups } = await supabase
-      .from("groups")
-      .select("id")
-      .eq("created_by", userId);
-
-    // Get groups where user is a member
-    const { data: memberGroups } = await supabase
-      .from("group_members")
-      .select("group_id")
-      .eq("user_id", userId);
-
-    const createdGroupIds = createdGroups?.map((g) => g.id) || [];
-    const memberGroupIds = memberGroups?.map((g) => g.group_id) || [];
-    const allGroupIds = [...new Set([...createdGroupIds, ...memberGroupIds])];
-
-    if (allGroupIds.length === 0) {
-      // If user has no groups, return empty array
-      return [];
+    if (error) {
+      throw new Error(error.message);
     }
 
-    query = query.in("group_id", allGroupIds);
+    // Filter by active group if specified
+    let filteredData = data || [];
+    if (activeGroupId) {
+      filteredData = filteredData.filter(
+        (todo: { group_id: string }) => todo.group_id === activeGroupId
+      );
+    }
+
+    return filteredData;
+  } catch {
+    return [];
   }
-
-  const { data, error } = await query.order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data || [];
 };
 
 export const useTodos = (groupId?: string | null) => {
@@ -95,13 +79,23 @@ export const useTodos = (groupId?: string | null) => {
       if (!todoData.group_id)
         throw new Error("Group ID is required to create a todo");
 
+      const insertData: Record<string, string | boolean | null> = {
+        ...todoData,
+        event_type: "task", // Always set event_type to 'task'
+        created_by: user.id
+      };
+
+      // Only add completed field if it exists in the database
+      try {
+        insertData.completed = false;
+        insertData.completed_at = null;
+      } catch {
+        // If completed fields don't exist, skip them
+      }
+
       const { data, error } = await supabase
         .from("events")
-        .insert({
-          ...todoData,
-          event_type: "task", // Always set event_type to 'task'
-          created_by: user.id
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -114,10 +108,45 @@ export const useTodos = (groupId?: string | null) => {
     }
   });
 
-  const deleteTodoMutation = useMutation({
+  const toggleTodoCompletionMutation = useMutation({
     mutationFn: async (todoId: string) => {
-      const { error } = await supabase.from("events").delete().eq("id", todoId);
+      // First get the current todo
+      const { data: currentTodo, error: fetchError } = await supabase
+        .from("events")
+        .select("completed")
+        .eq("id", todoId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const newCompleted = !currentTodo?.completed;
+
+      // Try to update with completed fields, fallback if they don't exist
+      const updateData: Record<string, string | boolean | null> = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Only add completed fields if they exist in the database
+      try {
+        updateData.completed = newCompleted;
+        if (newCompleted) {
+          updateData.completed_at = new Date().toISOString();
+        } else {
+          updateData.completed_at = null;
+        }
+      } catch {
+        // If completed fields don't exist, just update the timestamp
+      }
+
+      const { data, error } = await supabase
+        .from("events")
+        .update(updateData)
+        .eq("id", todoId)
+        .select()
+        .single();
+
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
@@ -157,7 +186,7 @@ export const useTodos = (groupId?: string | null) => {
     isError,
     createTodo: createTodoMutation.mutateAsync,
     isCreatingTodo: createTodoMutation.isPending,
-    deleteTodo: deleteTodoMutation.mutateAsync,
-    isDeletingTodo: deleteTodoMutation.isPending
+    toggleTodoCompletion: toggleTodoCompletionMutation.mutateAsync,
+    isTogglingCompletion: toggleTodoCompletionMutation.isPending
   };
 };

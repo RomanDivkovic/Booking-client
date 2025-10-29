@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
-// Definiera typen för en grupp
-interface Group {
-  id: string;
-  name: string;
-  // Lägg till andra relevanta gruppfält här
-}
+import { Group } from "@/types/group";
 
 // Definiera typen för context-värdet
 interface GroupContextType {

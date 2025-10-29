@@ -4,7 +4,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { to, inviteLink, groupName } = req.body;
+  const { to, inviteLink, groupName, inviterName } = req.body;
   if (!to || !inviteLink || !groupName)
     return res.status(400).json({ error: "Missing fields" });
 
@@ -26,6 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         subject: `Inbjudan till gruppen ${groupName}`,
         html: `
           <h2>Du har blivit inbjuden till ${groupName}!</h2>
+          <p><strong>${inviterName || "Någon"}</strong> har bjudit in dig till gruppen <strong>${groupName}</strong>.</p>
           <p>Klicka på länken för att gå med: <a href="${inviteLink}">${inviteLink}</a></p>
           <p>Om du inte har ett konto, registrera dig först.</p>
         `

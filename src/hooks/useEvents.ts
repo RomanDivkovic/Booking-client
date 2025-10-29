@@ -16,6 +16,8 @@ export interface Event {
   assignee_id?: string;
   group_id: string;
   category?: string;
+  completed?: boolean;
+  completed_at?: string;
   assignee?: {
     full_name: string;
     email: string;
@@ -63,6 +65,8 @@ const fetchEvents = async (
         assignee_id,
         group_id,
         category,
+        completed,
+        completed_at,
         assignee:profiles!events_assignee_id_fkey(id, full_name, email)
       `);
 
